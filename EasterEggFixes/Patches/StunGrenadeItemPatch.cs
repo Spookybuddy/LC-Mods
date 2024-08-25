@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using GameNetcodeStuff;
+using HarmonyLib;
 using UnityEngine;
 
 namespace EggFixes.Patches
@@ -31,19 +32,20 @@ namespace EggFixes.Patches
         //On ground hit check for -2 to explode, otherwise revert to -1
         [HarmonyPatch("OnHitGround")]
         [HarmonyPostfix]
-        static void ExplodeFix(StunGrenadeItem __instance, ref bool ___hasCollided)
+        static void ExplodeFix(StunGrenadeItem __instance, ref bool ___hasCollided, ref bool ___gotExplodeOnThrowRPC, ref PlayerControllerB ___playerThrownBy)
         {
 			if (__instance.hasExploded) return;
             if (__instance.chanceToExplode < -1) {
                 if (___hasCollided || __instance.hasHitGround) {
                     EasterEggFixesModBase.mls.LogInfo($"BOOM!");
+                    ___gotExplodeOnThrowRPC = true;
                     __instance.hasExploded = true;
                     if (__instance.spawnDamagingShockwave) Landmine.SpawnExplosion(__instance.transform.position + Vector3.up * 0.2f, spawnExplosionEffect: false, 0.5f, 3f, 40, 45f);
                     Transform parent = ((!__instance.isInElevator) ? RoundManager.Instance.mapPropsContainer.transform : StartOfRound.Instance.elevatorTransform);
                     Object.Instantiate(__instance.stunGrenadeExplosion, __instance.transform.position, Quaternion.identity, parent);
                     __instance.itemAudio.PlayOneShot(__instance.explodeSFX);
                     WalkieTalkie.TransmitOneShotAudio(__instance.itemAudio, __instance.explodeSFX);
-                    if (__instance.DestroyGrenade) Object.Destroy(__instance.gameObject);
+                    if (__instance.DestroyGrenade) __instance.DestroyObjectInHand(___playerThrownBy); //Object.Destroy(__instance.gameObject);
                 } else {
                     EasterEggFixesModBase.mls.LogError($"Failed to impact. Resetting Egg.");
                     __instance.chanceToExplode = -1;
