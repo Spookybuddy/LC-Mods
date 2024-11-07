@@ -22,7 +22,7 @@ namespace SpeedCheat.Patches
         static void ChangeCheatBinding()
         {
             IngamePlayerSettings.Instance.playerInput.actions.FindAction("SpeedCheat").ApplyBindingOverride(0, SpeedCheatBase.Binding);
-            SpeedCheatBase.mls.LogWarning($"Attempted to change Cheat binding to {SpeedCheatBase.Binding.ToUpper()[0] + SpeedCheatBase.Binding.Substring(1)}");
+            SpeedCheatBase.mls.LogWarning($"Attempted to change Cheat binding to {SpeedCheatBase.Binding}");
         }
     }
 }
