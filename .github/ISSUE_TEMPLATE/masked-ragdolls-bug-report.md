@@ -1,8 +1,8 @@
 ---
-name: Spike Trap Bug Report
-about: Report a bug for Spike Trap Fixes
-title: "[Spike Trap] Issue"
-labels: Bug, Spike Trap
+name: Masked Ragdolls Bug Report
+about: Report a bug for Masked Ragdolls
+title: "[Masked Ragdolls] Issue"
+labels: Bug, Masked Ragdolls
 assignees: Spookybuddy
 
 ---

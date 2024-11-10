@@ -1,8 +1,8 @@
 ---
-name: Spike Trap Bug Report
-about: Report a bug for Spike Trap Fixes
-title: "[Spike Trap] Issue"
-labels: Bug, Spike Trap
+name: Custom Outside Objects Bug Report
+about: Report a bug for Custom Outside Objects
+title: "[Custom Outside Objects] Issue"
+labels: Bug, Custom Outside Objects
 assignees: Spookybuddy
 
 ---

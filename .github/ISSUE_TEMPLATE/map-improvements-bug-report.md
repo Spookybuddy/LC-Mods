@@ -1,8 +1,8 @@
 ---
-name: Spike Trap Bug Report
-about: Report a bug for Spike Trap Fixes
-title: "[Spike Trap] Issue"
-labels: Bug, Spike Trap
+name: Map Improvements Bug Report
+about: Report a bug for Map Improvements
+title: "[Map Improvements] Issue"
+labels: Bug, Map Improvements
 assignees: Spookybuddy
 
 ---

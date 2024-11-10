@@ -1,8 +1,8 @@
 ---
-name: Spike Trap Bug Report
-about: Report a bug for Spike Trap Fixes
-title: "[Spike Trap] Issue"
-labels: Bug, Spike Trap
+name: Halloween Costumes Bug Report
+about: Report a bug for Halloween Costumes
+title: "[Halloween Costumes] Issue"
+labels: Bug, Halloween Costumes
 assignees: Spookybuddy
 
 ---
