@@ -6,12 +6,12 @@ using EggFixes.Patches;
 namespace EggFixes
 {
     [BepInPlugin(modGUID, modName, modVersion)]
-    [BepInDependency(LethalLib.Plugin.ModGUID)]
+    //[BepInDependency(LethalLib.Plugin.ModGUID)]
     public class EasterEggFixesModBase : BaseUnityPlugin
     {
         public const string modGUID = "EasterEggFixes";
         private const string modName = "EasterEggFixes";
-        private const string modVersion = "2.0.0";
+        private const string modVersion = "2.0.1";
 
         private readonly Harmony harmony = new Harmony(modGUID);
         internal ConfigControl Configuration;

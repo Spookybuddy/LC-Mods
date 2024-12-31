@@ -5,20 +5,20 @@ namespace MapImprovements
     internal class ConfigControl : SyncedInstance<ConfigControl>
     {
         public ConfigEntry<bool> cfgModEnabled;
-        private ConfigEntry<Setting> cfgGuide;
         public MoonConfig[] cfgMoons;
         public enum Setting
         {
             Enabled,
             Disabled,
             Always,
-            CombineFirst,
-            CombineSecond,
-            CombineThird,
+            Never,
+            CombineA,
+            CombineB,
+            CombineC,
             CombineAll,
-            RandomFirst,
-            RandomSecond,
-            RandomThird,
+            RandomA,
+            RandomB,
+            RandomC,
             RandomAny
         }
         internal bool ModEnabled
@@ -60,7 +60,7 @@ namespace MapImprovements
             InitInstance(this);
             cfgMoons = new MoonConfig[MapImprovementModBase.Instance.Moons.Count];
             cfgModEnabled = cfg.Bind("Basics", "Enable Map Improvements", true, "Turns the mod on.");
-            cfgGuide = cfg.Bind("Basics", "Guide to Dropdown:", Setting.Enabled, "Enabled: Object can spawn.\nDiabled: Object cannot spawn.\nAlways: Object will always spawn.\nCombine 1/2/3: Spawns the 1/2/3 object alongside this one.\nCombineAll: Spawns all other objects.\nRandom 1/2/3: 50% to spawn the 1/2/3 object as well.\nRandomAny: 50% to spawn any other object.");
+            _ = cfg.Bind("Basics", "Guide to Dropdown:", Setting.Enabled, "Enabled: Object can spawn.\nDiabled: Object cannot spawn.\nAlways: Object always spawns.\nNever: Object can only be spawned when Combined/Randomed from another Object.\nCombine A/B/C: Spawns Object A/B/C too.\nCombineAll: Spawns all other Objects.\nRandom A/B/C: 50% to spawn Object A/B/C too.\nRandomAny: 50% to spawn any other Object.");
             for (int i = 0; i < cfgMoons.Length; i++) {
                 if (MapImprovementModBase.Instance.Moons[i].Adjustments == null || MapImprovementModBase.Instance.Moons[i].Adjustments.Count < 1) continue;
                 string name = MapImprovementModBase.Instance.Moons[i].Planet;

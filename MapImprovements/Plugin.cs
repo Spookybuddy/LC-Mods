@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace MapImprovements
 {
     [BepInPlugin(modGUID, modName, modVersion)]
-    [BepInDependency(LethalLib.Plugin.ModGUID)]
+    //[BepInDependency(LethalLib.Plugin.ModGUID)]
     public class MapImprovementModBase : BaseUnityPlugin
     {
         //Mod declaration
@@ -28,6 +28,7 @@ namespace MapImprovements
         internal static AssetBundle currentAsset;
         internal static GameObject[] currentAssetObjects;
         internal static TextAsset[] currentInstructions;
+        internal static Sprite[] iconAssets;
 
         //Internal moon vars
         internal List<Collection> Moons = new List<Collection>() {
@@ -111,7 +112,8 @@ namespace MapImprovements
             Water,
             Reverb,
             StoryLog,
-            Bridge
+            Bridge,
+            HasTrees
         }
 
         void Awake()
@@ -128,6 +130,8 @@ namespace MapImprovements
                     if (currentAsset != null) {
                         currentAssetObjects = currentAsset.LoadAllAssets<GameObject>();
                         currentInstructions = currentAsset.LoadAllAssets<TextAsset>();
+                        string[] basis = foundOutsideAssetFiles[i].ToLower().Split(new[] { "\\" }, System.StringSplitOptions.RemoveEmptyEntries);
+                        if (basis[basis.Length - 1].Equals("mapimprovements.bundle")) iconAssets = currentAsset.LoadAllAssets<Sprite>();
                         if (currentAssetObjects != null && currentAssetObjects.Length > 0) {
                             for (int objects = 0; objects < currentAssetObjects.Length; objects++) {
                                 string[] parse = currentAssetObjects[objects].name.ToLower().Split(new[] { "_" }, System.StringSplitOptions.RemoveEmptyEntries);
@@ -136,6 +140,7 @@ namespace MapImprovements
                                 List<Edits> adjustments = new List<Edits>();
                                 string configDescrip = "";
                                 //Find the index/exists of each moon and add to that item
+                                //ADD IN FORCED NAV REBAKE TO COVER FOR WHEN NO HAZARDS SPAWN
                                 switch (parse[0]) {
                                     case "experimentation":
                                         index = 0;
@@ -156,13 +161,27 @@ namespace MapImprovements
                                         if (parse.Length > 1) {
                                             if (int.TryParse(parse[1], out int ass)) {
                                                 if (ass == 1) {
-
+                                                    adjustments.Add(new Edits("OutsideNode (22)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(-0.85f, 9.147f, 76.25f), F : 2));
+                                                    configDescrip = "Adds in a new Fire Exit and more environmental detailing.";
                                                 } else if (ass == 2) {
-
+                                                    adjustments.Add(new Edits("rock.012 (1)", "Rock", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("rock.007", "Rock", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("RockSingle4", "Rock", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("rock.001 (1)", "Rock", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideAINode (29)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("RockObstacles/NavObs (4)", "Untagged", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("RockObstacles/NavObs (6)", "Untagged", EditEnums.Destroy));
+                                                    configDescrip = "Removes rocks to create a path for the Cruiser to get to the Main Entrance.";
                                                 }
                                             }
                                         } else {
-
+                                            adjustments.Add(new Edits("Cube", "Concrete", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("ReverbTriggers (1)/Cube", "Untagged", EditEnums.Move, new Vector3(-274.25f, 7.5f, -76)));
+                                            adjustments.Add(new Edits("ReverbTriggers (1)/Cube (16)", "Untagged", EditEnums.AllTransforms, new Vector3(-265, 16, -83), default, new Vector3(0.5f, 36, 50)));
+                                            adjustments.Add(new Edits("ReverbTriggers (1)/Cube (1)", "Untagged", EditEnums.AllTransforms, new Vector3(-268.5f, 10, -80), default, new Vector3(0.5f, 16, 40)));
+                                            adjustments.Add(new Edits("Ladder1.5x", "Untagged", EditEnums.Clone, new Vector3(142.6f, -0.9f, 75.85f), new Vector3(0, 108, 0), new Vector3(0.6f, 1.2f, 0.6f)));
+                                            configDescrip = "Modifies the Main Entrance buidling, allowing access to the pipe to the Fire Exit through a bit of parkour.";
                                         }
                                         break;
                                     case "vow":
@@ -170,13 +189,40 @@ namespace MapImprovements
                                         if (parse.Length > 1) {
                                             if (int.TryParse(parse[1], out int vow)) {
                                                 if (vow == 1) {
-
+                                                    //Add in rocks, trees, nodes through valley, as well as ways to climb out
+                                                    adjustments.Add(new Edits("DangerousBridge", "Untagged", EditEnums.Clone, new Vector3(-68.25f, -9.7f, 104.25f), new Vector3(1.75f, 159.25f, 1.1f), new Vector3(0.81f, 0.81f, 0.82f)));
+                                                    adjustments.Add(new Edits("WaterDam", "Concrete", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("WaterBig", "Untagged", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("WaterTriggers", "Untagged", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("BoundsWalls/Cube (4)", "Untagged", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("BoundsWalls/Cube (5)", "Untagged", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("FireExitDoorContainer", "Untagged", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("StoryLogCollectable (3)", "InteractTrigger", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (97)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (98)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (99)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.AllTransforms, new Vector3(93.2f, -7, 162.15f), Vector3.zero));
+                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    configDescrip = "The river has dried up, leaving behind a valley with trees and rocks. The dam has been replaced with another breakable bridge, and the Fire Exit has been moved to the right end of the Facility.";
                                                 } else if (vow == 2) {
-
+                                                    adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(119.9f, -29.5f, 37.65f), new Vector3(0, 180, 0), F: 2));
+                                                    adjustments.Add(new Edits("OutsideNode (55)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (54)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (44)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (32)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (31)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (26)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("tree.002_LOD0 (30)", "Wood", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("tree.003_LOD0 (26)", "Wood", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("tree.003_LOD0 (25)", "Wood", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    configDescrip = "Adds in a new facility building right behind the ship, with a Fire Exit that has been flooded.";
                                                 }
                                             }
                                         } else {
-
+                                            adjustments.Add(new Edits("ChainlinkFence (4)", "Untagged", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(12.75f, 8, 211.25f), new Vector3(0, 180, 0), F : 2));
+                                            configDescrip = "Expands the Facility building, adding in a new area with Fire Exit through the alleyway.";
                                         }
                                         break;
                                     case "offense":
@@ -216,11 +262,15 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-75.9f, -2.4f, -112.35f), new Vector3(0, 223, 0)));
                                                     configDescrip = "Adds in easier pathing to and from the Fire Exit while also adjusting it slightly.";
                                                 } else if (ada == 2) {
+                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(56.8f, 13.1f, -92.3f), new Vector3(0, -220, 0), F: 2));
                                                     configDescrip = "Adds in a new Fire Exit and environmental detailing on the left side of the ship landing area.";
                                                 }
                                             }
-                                        } else configDescrip = "Adds in unique environmental details to differentiate it from other forest moons. Makes certain hills easier to climb.";
+                                        } else {
+                                            adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                            configDescrip = "Adds in unique mineshaft environmental details to differentiate it from other forest moons. Makes certain hills easier to climb.";
+                                        }
                                         break;
                                     case "rend":
                                         index = 6;
@@ -268,6 +318,7 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("Environment/Map/Collider (1)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("CliffJump (2)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("CliffJump (3)", "Untagged", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
                                             configDescrip = "Adds in fences around the edges, with holes to allow for escaping Giants. Adjusts the main entrance area to prevent Giants loitering.";
                                         }
                                         break;
@@ -293,12 +344,22 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("ItemShipAnimContainer", "Untagged", EditEnums.AllTransforms, new Vector3(72, 2.75f, -62.5f), new Vector3(-90, 45, -50)));
                                                     adjustments.Add(new Edits("treeLeafless", "Wood", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("treeLeafless (4)", "Wood", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (97)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (95)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (94)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (93)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (92)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (90)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (8)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (7)", "OutsideAINode", EditEnums.Destroy));
+                                                    adjustments.Add(new Edits("OutsideNode (6)", "OutsideAINode", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("treeLeafless.002_LOD0 (3)", "Wood", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("SteelDoorMapModel (4)", "Untagged", EditEnums.Clone, new Vector3(12.25f, 4.5f, -11.21f), new Vector3(180, -92, -180), new Vector3(1, 1.05f, 1)));
                                                     adjustments.Add(new Edits("FogExclusionZone (2)", "Untagged", EditEnums.Clone, new Vector3(30.5f, 14, -0.75f)));
                                                     adjustments.Add(new Edits("BuildingAmbience", "Untagged", EditEnums.Clone, new Vector3(46.25f, 7, -73), new Vector3(180, 0, 180)));
                                                     adjustments.Add(new Edits("BuildingAmbience (7)", "Untagged", EditEnums.Clone, new Vector3(10.75f, 3, -84)));
                                                     adjustments.Add(new Edits("InsideAmbience (1)", "Untagged", EditEnums.Clone, new Vector3(47.5f, 7, -73)));
+                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
                                                     configDescrip = "Adds in a warehouse and platform for the ship to land in.";
                                                 } else if (art == 2) {
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(14, 157.4f, -274.9f), new Vector3(180, 26, 180), F: 2));
@@ -313,6 +374,7 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("Ocean (3)", "Puddle", EditEnums.Water));
                                                     adjustments.Add(new Edits("Ocean (4)", "Puddle", EditEnums.Water));
                                                     adjustments.Add(new Edits("WaterTrigger", "Untagged", EditEnums.Water));
+                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
                                                     configDescrip = "Adds in large bodies of water and dams.";
                                                 }
                                             }
@@ -459,6 +521,10 @@ namespace MapImprovements
                                                                             break;
                                                                         case "bridge":
                                                                             edit = EditEnums.Bridge;
+                                                                            break;
+                                                                        case "trees":
+                                                                        case "hastrees":
+                                                                            edit = EditEnums.HasTrees;
                                                                             break;
                                                                         default:
                                                                             mls.LogError("Unable to parse Edit Enum. Please make sure things are formatted properly.");

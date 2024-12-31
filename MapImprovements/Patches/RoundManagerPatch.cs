@@ -2,6 +2,7 @@
 using UnityEngine;
 using Unity.AI.Navigation;
 using System.Linq;
+using System.Reflection;
 
 namespace MapImprovements.Patches
 {
@@ -14,7 +15,6 @@ namespace MapImprovements.Patches
         static void GetWaterMat()
         {
             WaterMat = GameObject.Find("TimeAndWeather").transform.GetChild(4).GetChild(1).GetComponent<MeshRenderer>().material;
-            MapImprovementModBase.mls.LogWarning($"Got material for water: {WaterMat.name}");
         }
 
         [HarmonyPatch("SetChallengeFileRandomModifiers")]
@@ -92,7 +92,7 @@ namespace MapImprovements.Patches
             if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].Enabled) return;
             //Apply mod
             Mod(moon, __instance.playersManager.randomMapSeed, container);
-            //Bake Navmesh for custom moons
+            //Bake Navmesh for custom moons - Maybe also bake for no outside hazard spawns?
             if (moon > 11) {
                 GameObject navigation = GameObject.FindGameObjectWithTag("OutsideLevelNavMesh");
                 if (navigation != null) {
@@ -113,20 +113,22 @@ namespace MapImprovements.Patches
                 if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) fireOffset += ApplyObject(moon, i, container.transform);
             }
 
-            //Calculate the base spawn, exiting if the vanilla is selected / oob
+            //Calculate the base spawn, exiting if the vanilla is selected / oob / disabled from spawning (but that should never happen)
             int index = RandomIndex(moon, randomSeed, vanilla);
-            if (index < 0 || index >= MapImprovementModBase.Instance.Moons[moon].Adjustments.Count || MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Disabled)) return;
+            if (index < 0 || index >= MapImprovementModBase.Instance.Moons[moon].Adjustments.Count) return;
+            if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Disabled)) return;
+            if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Never)) return;
             fireOffset += ApplyObject(moon, index, container.transform);
 
             //New System
             switch (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings) {
-                case ConfigControl.Setting.CombineFirst:
+                case ConfigControl.Setting.CombineA:
                     if (index != 0) ApplyObject(moon, 0, container.transform, fireOffset);
                     break;
-                case ConfigControl.Setting.CombineSecond:
+                case ConfigControl.Setting.CombineB:
                     if (index != 1) ApplyObject(moon, 1, container.transform, fireOffset);
                     break;
-                case ConfigControl.Setting.CombineThird:
+                case ConfigControl.Setting.CombineC:
                     if (index != 2) ApplyObject(moon, 2, container.transform, fireOffset);
                     break;
                 case ConfigControl.Setting.CombineAll:
@@ -134,17 +136,17 @@ namespace MapImprovements.Patches
                         if (index != i) fireOffset += ApplyObject(moon, i, container.transform, fireOffset);
                     }
                     break;
-                case ConfigControl.Setting.RandomFirst:
+                case ConfigControl.Setting.RandomA:
                     if (index != 0) {
                         if (Fifty_Fifty(moon, (int)(randomSeed * 5 / 3.0f), 0)) ApplyObject(moon, 0, container.transform, fireOffset);
                     }
                     break;
-                case ConfigControl.Setting.RandomSecond:
+                case ConfigControl.Setting.RandomB:
                     if (index != 1) {
                         if (Fifty_Fifty(moon, (int)(randomSeed * 5 / 3.0f), 1)) ApplyObject(moon, 1, container.transform, fireOffset);
                     }
                     break;
-                case ConfigControl.Setting.RandomThird:
+                case ConfigControl.Setting.RandomC:
                     if (index != 2) {
                         if (Fifty_Fifty(moon, (int)(randomSeed * 5 / 3.0f), 2)) ApplyObject(moon, 2, container.transform, fireOffset);
                     }
@@ -154,9 +156,6 @@ namespace MapImprovements.Patches
                     if (second == index || second < 0 || second >= MapImprovementModBase.Instance.Moons[moon].Adjustments.Count) return;
                     ApplyObject(moon, second, container.transform, fireOffset);
                     break;
-                case ConfigControl.Setting.Enabled:
-                case ConfigControl.Setting.Disabled:
-                case ConfigControl.Setting.Always:
                 default:
                     break;
             }
@@ -169,7 +168,9 @@ namespace MapImprovements.Patches
             byte mod = 0;
             for (int i = 0; i < MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects.Length; i++) {
                 if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) continue;
-                if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Disabled)) mod += (byte)Mathf.Pow(2, i);
+                if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Disabled)) {
+                    if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Never)) mod += (byte)Mathf.Pow(2, i);
+                }
             }
             if (mod > 0) {
                 if (vanilla) mod += 8;
@@ -342,6 +343,16 @@ namespace MapImprovements.Patches
                     return 0;
                 case MapImprovementModBase.EditEnums.Bridge:
                     MapImprovementModBase.mls.LogInfo($"Breakable bridge {find.name}");
+                    return 0;
+                case MapImprovementModBase.EditEnums.HasTrees:
+                    MapImprovementModBase.mls.LogInfo($"Adding script to all trees without one...");
+                    GameObject[] trees = GameObject.FindGameObjectsWithTag("Wood");
+                    for (int t = 0; t < trees.Length; t++) {
+                        if (trees[t].name.ToLower().Equals("treebreaktrigger")) {
+                            if (!trees[t].TryGetComponent<Collider>(out _)) continue;
+                            if (!trees[t].TryGetComponent<TerrainObstacleTrigger>(out _)) trees[t].AddComponent<TerrainObstacleTrigger>();
+                        }
+                    }
                     return 0;
                 default:
                     MapImprovementModBase.mls.LogError($"Error regarding Edit Enum: Enum set to {MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Do}");
