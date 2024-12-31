@@ -75,7 +75,7 @@ namespace EggFixes
             if (!IsClient) return;
 
             FastBufferWriter stream = new FastBufferWriter(IntSize, Allocator.Temp);
-            MessageManager.SendNamedMessage("SpikeTrapFixes_OnRequestConfigSync", 0uL, stream);
+            MessageManager.SendNamedMessage("EasterEggFixes_OnRequestConfigSync", 0uL, stream);
         }
 
         public static void OnRequestSync(ulong clientId, FastBufferReader _)
@@ -93,7 +93,7 @@ namespace EggFixes
                 stream.WriteValueSafe(in value, default);
                 stream.WriteBytesSafe(array);
 
-                MessageManager.SendNamedMessage("SpikeTrapFixes_OnReceiveConfigSync", clientId, stream);
+                MessageManager.SendNamedMessage("EasterEggFixes_OnReceiveConfigSync", clientId, stream);
             } catch (Exception e) {
                 EasterEggFixesModBase.mls.LogInfo($"Error occurred syncing config with client: {clientId}\n{e}");
             }
@@ -126,14 +126,14 @@ namespace EggFixes
         public static void InitializeLocalPlayer()
         {
             if (IsHost) {
-                MessageManager.RegisterNamedMessageHandler("SpikeTrapFixes_OnRequestConfigSync", OnRequestSync);
+                MessageManager.RegisterNamedMessageHandler("EasterEggFixes_OnRequestConfigSync", OnRequestSync);
                 Synced = true;
 
                 return;
             }
 
             Synced = false;
-            MessageManager.RegisterNamedMessageHandler("SpikeTrapFixes_OnReceiveConfigSync", OnReceiveSync);
+            MessageManager.RegisterNamedMessageHandler("EasterEggFixes_OnReceiveConfigSync", OnReceiveSync);
             RequestSync();
         }
 

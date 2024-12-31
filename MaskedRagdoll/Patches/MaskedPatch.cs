@@ -251,11 +251,11 @@ namespace MaskedRagdoll.Patches
                         if (playerWhoHit != null) {
                             RagdollModBase.mls.LogInfo($"Masked gunned down!");
                             if (__instance.IsOwner) playerWhoHit.SyncBodyPositionWithClients();
-                            expDis = Vector3.Distance(__instance.serverPosition, playerWhoHit.serverPlayerPosition);
-                            recoil = (__instance.serverPosition - playerWhoHit.serverPlayerPosition).normalized * (force * ((expDis + 15) / (expDis + 2))) + Vector3.up;
+                            expDis = Vector3.Distance(__instance.serverPosition, playerWhoHit.transform.position);
+                            recoil = (__instance.serverPosition - playerWhoHit.transform.position).normalized * (force * ((expDis + 15) / (expDis + 1))) + (Vector3.up * 2);
                         } else if (expDis < 4.5f) {
                             RagdollModBase.mls.LogInfo($"Masked exploded! @ " + RagdollModBase.Instance.lastExplodePos);
-                            recoil = (__instance.serverPosition - RagdollModBase.Instance.lastExplodePos).normalized * (26 / (expDis - 6.5f) + 39) + Vector3.up;
+                            recoil = (__instance.serverPosition - RagdollModBase.Instance.lastExplodePos).normalized * (26 / (expDis - 6.5f) + 39) + (Vector3.up * 3);
                         } else {
                             //Catch for unknown recoil
                             RagdollModBase.mls.LogWarning($"Masked killed???");
@@ -275,7 +275,6 @@ namespace MaskedRagdoll.Patches
             if (destroy) return;
 
             //Disable mesh to pretend the ragdoll is the Masked
-            //RagdollModBase.mls.LogInfo($"Disabling Masked enemy.");
             ___enemyEnabled = false;
             __instance.SetVisibilityOfMaskedEnemy();
             __instance.EnableEnemyMesh(false, true);
@@ -307,13 +306,13 @@ namespace MaskedRagdoll.Patches
             //Set proper mask
             LODGroup[] masks = body.transform.GetComponentsInChildren<LODGroup>();
             if (!(__instance.maskTypes[0].activeSelf ^ __instance.maskTypes[1].activeSelf)) masks[0].gameObject.SetActive(true);
-            else for (int i = 0; i < masks.Length; i++) masks[i].gameObject.SetActive(__instance.maskTypes[i].activeSelf);
+            else for (int i = 0; i < 2; i++) masks[i].gameObject.SetActive(__instance.maskTypes[i].activeSelf);
             if (!RagdollModBase.Instance.Configuration.Masked) for (int i = 0; i < masks.Length; i++) masks[i].gameObject.SetActive(false);
 
             //Ragdoll velocity
             Rigidbody[] limbs = body.GetComponentsInChildren<Rigidbody>();
             if (RagdollModBase.Instance.Configuration.Multiplier != 1 && recoil != default) {
-                RagdollModBase.mls.LogInfo("Multiplying ragdoll force.");
+                RagdollModBase.mls.LogInfo($"Multiplying ragdoll force.");
                 recoil *= RagdollModBase.Instance.Configuration.Multiplier;
             }
             for (int i = 0; i < limbs.Length; i++) limbs[i].AddForce(recoil, ForceMode.VelocityChange);
