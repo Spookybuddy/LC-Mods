@@ -6,17 +6,19 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using LethalLib.Extras;
+using LethalLevelLoader;
 
 namespace CustomOutsideObjects
 {
     [BepInPlugin(modGUID, modName, modVersion)]
     [BepInDependency(LethalLib.Plugin.ModGUID)]
+    [BepInDependency(LethalLevelLoader.Plugin.ModGUID)]
     public class CustomOutsideModBase : BaseUnityPlugin
     {
         //Mod declaration
         public const string modGUID = "CustomOutsideObjects";
         private const string modName = "CustomOutsideObjects";
-        private const string modVersion = "1.0.1";
+        private const string modVersion = "1.1.0";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -107,7 +109,7 @@ namespace CustomOutsideObjects
                 return;
             }
 
-            //Find all custom moons by locating the parent plugins folder. All .lethalbundle files are found, and if there is X & Xscene(s), add that as custom moon
+            //Find all custom moons by locating the parent plugins folder. All .lethalbundle files are found, and if there is X & X()scene(s), add that as custom moon
             string location = Path.GetDirectoryName(Info.Location).ToString();
             string[] files = location.Split('\\');
             for (int i = files.Length - 1; i > 0; i--) {
@@ -123,7 +125,32 @@ namespace CustomOutsideObjects
                         for (int l = k + 1; l < files.Length; l++) {
                             if (files[l].Contains(files[k])) {
                                 if (files[l].Replace(files[k], "").Equals("scene")) customMoonList.Add(files[k]);
-                                else if (files[l].Replace(files[k], "").Equals("scenes")) customMoonList.Add(files[k]);
+                                else if (files[l].Replace(files[k], "").Equals(" scene")) customMoonList.Add(files[k]);
+                                else if (files[l].Replace(files[k], "").Equals("scenes")) {
+                                    //Catch for bundled moons
+                                    AssetBundle ass = AssetBundle.LoadFromFile(paths[k]);
+                                    ExtendedMod[] mod = ass.LoadAllAssets<ExtendedMod>();
+                                    List<ExtendedLevel> extended = mod[0].ExtendedLevels;
+                                    for (int z = 0; z < extended.Count; z++) {
+                                        string[] level = extended[z].SelectableLevel.name.Split(new[] { "level", "selectable", "Level", "Selectable" }, System.StringSplitOptions.RemoveEmptyEntries);
+                                        customMoonList.Add(level[0]);
+                                    }
+                                    ass.Unload(true);
+                                }
+                            } else {
+                                //Catch for DemonMae's naming conventions
+                                if (files[l].Replace(files[k].Replace("moon", ""), "").Equals("scene")) customMoonList.Add(files[k]);
+                                //Catch for GordionSaga
+                                if (files[l].Replace(files[k].Replace("assets", ""), "").Equals("mod")) {
+                                    AssetBundle ass = AssetBundle.LoadFromFile(paths[l]);
+                                    ExtendedMod[] mod = ass.LoadAllAssets<ExtendedMod>();
+                                    List<ExtendedLevel> extended = mod[0].ExtendedLevels;
+                                    for (int z = 0; z < extended.Count; z++) {
+                                        string[] level = extended[z].SelectableLevel.name.Split(new[] { "level", "selectable", "Level", "Selectable" }, System.StringSplitOptions.RemoveEmptyEntries);
+                                        customMoonList.Add(level[0]);
+                                    }
+                                    ass.Unload(true);
+                                }
                             }
                         }
                     }
