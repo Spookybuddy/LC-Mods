@@ -13,7 +13,7 @@ namespace CustomOutsideObjects.Patches
             string namePlanet = ___currentLevel.PlanetName.ToLower().Trim();
             string nameLevel = ___currentLevel.name.ToLower().Trim();
             string[] planet = namePlanet.Split(' ');
-            string[] level = nameLevel.Split(new[] { "level" }, System.StringSplitOptions.RemoveEmptyEntries);
+            string[] level = nameLevel.Split(new[] { "level", "selectable" }, System.StringSplitOptions.RemoveEmptyEntries);
             //Skip if level has been preset in start of round
             switch (level[0]) {
                 case "experimentation":

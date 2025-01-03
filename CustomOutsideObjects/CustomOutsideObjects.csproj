@@ -40,6 +40,9 @@
     <Reference Include="BepInEx">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
+    <Reference Include="LethalLevelLoader">
+      <HintPath>..\..\..\..\..\Lethal Level Loader\Assets\LethalCompany\Mods\plugins\LethalLevelLoader.dll</HintPath>
+    </Reference>
     <Reference Include="LethalLib">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\LethalLib\LethalLib.dll</HintPath>
     </Reference>
