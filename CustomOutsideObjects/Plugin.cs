@@ -16,7 +16,7 @@ namespace CustomOutsideObjects
         //Mod declaration
         public const string modGUID = "CustomOutsideObjects";
         private const string modName = "CustomOutsideObjects";
-        private const string modVersion = "1.0.0";
+        private const string modVersion = "1.0.1";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -107,7 +107,7 @@ namespace CustomOutsideObjects
                 return;
             }
 
-            //Find all custom moons by locating the parent plugins folder. All .lethalbundle files are found, and if there is X & Xscene, add that as custom moon
+            //Find all custom moons by locating the parent plugins folder. All .lethalbundle files are found, and if there is X & Xscene(s), add that as custom moon
             string location = Path.GetDirectoryName(Info.Location).ToString();
             string[] files = location.Split('\\');
             for (int i = files.Length - 1; i > 0; i--) {
@@ -123,6 +123,7 @@ namespace CustomOutsideObjects
                         for (int l = k + 1; l < files.Length; l++) {
                             if (files[l].Contains(files[k])) {
                                 if (files[l].Replace(files[k], "").Equals("scene")) customMoonList.Add(files[k]);
+                                else if (files[l].Replace(files[k], "").Equals("scenes")) customMoonList.Add(files[k]);
                             }
                         }
                     }
