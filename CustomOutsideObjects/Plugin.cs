@@ -140,6 +140,8 @@ namespace CustomOutsideObjects
                             } else {
                                 //Catch for DemonMae's naming conventions
                                 if (files[l].Replace(files[k].Replace("moon", ""), "").Equals("scene")) customMoonList.Add(files[k]);
+                                //Catch for Zingar's naming conventions
+                                else if (files[k].Replace(files[l], "").Equals(" scene")) customMoonList.Add(files[l]);
                                 //Catch for GordionSaga
                                 if (files[l].Replace(files[k].Replace("assets", ""), "").Equals("mod")) {
                                     AssetBundle ass = AssetBundle.LoadFromFile(paths[l]);
