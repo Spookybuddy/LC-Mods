@@ -9,13 +9,13 @@ using System.Collections.Generic;
 namespace MapImprovements
 {
     [BepInPlugin(modGUID, modName, modVersion)]
-    //[BepInDependency(LethalLib.Plugin.ModGUID)]
+    [BepInDependency(LethalLevelLoader.Plugin.ModGUID)]
     public class MapImprovementModBase : BaseUnityPlugin
     {
         //Mod declaration
         public const string modGUID = "MapImprovements";
         private const string modName = "MapImprovements";
-        private const string modVersion = "0.9.0";
+        private const string modVersion = "0.9.1";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -28,7 +28,6 @@ namespace MapImprovements
         internal static AssetBundle currentAsset;
         internal static GameObject[] currentAssetObjects;
         internal static TextAsset[] currentInstructions;
-        internal static Sprite[] iconAssets;
 
         //Internal moon vars
         internal List<Collection> Moons = new List<Collection>() {
@@ -131,7 +130,6 @@ namespace MapImprovements
                         currentAssetObjects = currentAsset.LoadAllAssets<GameObject>();
                         currentInstructions = currentAsset.LoadAllAssets<TextAsset>();
                         string[] basis = foundOutsideAssetFiles[i].ToLower().Split(new[] { "\\" }, System.StringSplitOptions.RemoveEmptyEntries);
-                        if (basis[basis.Length - 1].Equals("mapimprovements.bundle")) iconAssets = currentAsset.LoadAllAssets<Sprite>();
                         if (currentAssetObjects != null && currentAssetObjects.Length > 0) {
                             for (int objects = 0; objects < currentAssetObjects.Length; objects++) {
                                 string[] parse = currentAssetObjects[objects].name.ToLower().Split(new[] { "_" }, System.StringSplitOptions.RemoveEmptyEntries);

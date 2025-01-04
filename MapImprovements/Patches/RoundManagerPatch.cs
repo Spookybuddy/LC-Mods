@@ -19,21 +19,6 @@ namespace MapImprovements.Patches
 
         [HarmonyPatch("SetChallengeFileRandomModifiers")]
         [HarmonyPrefix]
-        static void ImproveCompany(RoundManager __instance)
-        {
-            if (!MapImprovementModBase.Instance.Configuration.ModEnabled) return;
-            string nameLevel = __instance.currentLevel.name.ToLower().Trim();
-            string[] level = nameLevel.Split(new[] { "level" }, System.StringSplitOptions.RemoveEmptyEntries);
-            GameObject container = GameObject.FindGameObjectWithTag("MapPropsContainer");
-            if (container == null) return;
-            if (!level[0].Equals("companybuilding")) return;
-            if (MapImprovementModBase.Instance.Moons[11].Adjustments == null || MapImprovementModBase.Instance.Moons[11].Adjustments.Count < 1) return;
-            if (!MapImprovementModBase.Instance.Configuration.cfgMoons[11].Enabled) return;
-            Mod(11, __instance.playersManager.randomMapSeed, container);
-        }
-
-        [HarmonyPatch("GenerateNewFloor")]
-        [HarmonyPrefix]
         static void AddImprovements(RoundManager __instance)
         {
             //Exit if mod is disabled
@@ -79,7 +64,6 @@ namespace MapImprovements.Patches
                     moon = 10;
                     break;
                 case "companybuilding":
-                    //Inaccessible, as the company does not call Generate floor
                     moon = 11;
                     break;
                 default:
