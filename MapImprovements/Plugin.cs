@@ -15,13 +15,13 @@ namespace MapImprovements
         //Mod declaration
         public const string modGUID = "MapImprovements";
         private const string modName = "MapImprovements";
-        private const string modVersion = "0.9.1";
+        private const string modVersion = "0.9.2";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
         internal static MapImprovementModBase Instance;
         internal static ManualLogSource mls;
-        internal ConfigControl Configuration;
+        internal static ConfigControl Configuration;
 
         //Mod variables
         internal static string[] foundOutsideAssetFiles;
@@ -200,7 +200,7 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("OutsideNode (98)", "OutsideAINode", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("OutsideNode (99)", "OutsideAINode", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.AllTransforms, new Vector3(93.2f, -7, 162.15f), Vector3.zero));
-                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                                     configDescrip = "The river has dried up, leaving behind a valley with trees and rocks. The dam has been replaced with another breakable bridge, and the Fire Exit has been moved to the right end of the Facility.";
                                                 } else if (vow == 2) {
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(119.9f, -29.5f, 37.65f), new Vector3(0, 180, 0), F: 2));
@@ -213,7 +213,7 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("tree.002_LOD0 (30)", "Wood", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("tree.003_LOD0 (26)", "Wood", EditEnums.Destroy));
                                                     adjustments.Add(new Edits("tree.003_LOD0 (25)", "Wood", EditEnums.Destroy));
-                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                                     configDescrip = "Adds in a new facility building right behind the ship, with a Fire Exit that has been flooded.";
                                                 }
                                             }
@@ -260,13 +260,13 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-75.9f, -2.4f, -112.35f), new Vector3(0, 223, 0)));
                                                     configDescrip = "Adds in easier pathing to and from the Fire Exit while also adjusting it slightly.";
                                                 } else if (ada == 2) {
-                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(56.8f, 13.1f, -92.3f), new Vector3(0, -220, 0), F: 2));
                                                     configDescrip = "Adds in a new Fire Exit and environmental detailing on the left side of the ship landing area.";
                                                 }
                                             }
                                         } else {
-                                            adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                            adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                             configDescrip = "Adds in unique mineshaft environmental details to differentiate it from other forest moons. Makes certain hills easier to climb.";
                                         }
                                         break;
@@ -316,7 +316,7 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("Environment/Map/Collider (1)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("CliffJump (2)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("CliffJump (3)", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                            adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                             configDescrip = "Adds in fences around the edges, with holes to allow for escaping Giants. Adjusts the main entrance area to prevent Giants loitering.";
                                         }
                                         break;
@@ -357,7 +357,7 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("BuildingAmbience", "Untagged", EditEnums.Clone, new Vector3(46.25f, 7, -73), new Vector3(180, 0, 180)));
                                                     adjustments.Add(new Edits("BuildingAmbience (7)", "Untagged", EditEnums.Clone, new Vector3(10.75f, 3, -84)));
                                                     adjustments.Add(new Edits("InsideAmbience (1)", "Untagged", EditEnums.Clone, new Vector3(47.5f, 7, -73)));
-                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                                     configDescrip = "Adds in a warehouse and platform for the ship to land in.";
                                                 } else if (art == 2) {
                                                     adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(14, 157.4f, -274.9f), new Vector3(180, 26, 180), F: 2));
@@ -372,7 +372,7 @@ namespace MapImprovements
                                                     adjustments.Add(new Edits("Ocean (3)", "Puddle", EditEnums.Water));
                                                     adjustments.Add(new Edits("Ocean (4)", "Puddle", EditEnums.Water));
                                                     adjustments.Add(new Edits("WaterTrigger", "Untagged", EditEnums.Water));
-                                                    adjustments.Add(new Edits("_", "Wood", EditEnums.HasTrees));
+                                                    adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                                     configDescrip = "Adds in large bodies of water and dams.";
                                                 }
                                             }

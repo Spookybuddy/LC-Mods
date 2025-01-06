@@ -14,18 +14,18 @@ namespace MaskedRagdoll
     {
         public const string modGUID = "MaskedRagdolls";
         private const string modName = "MaskedRagdoll";
-        private const string modVersion = "0.9.0";
+        private const string modVersion = "1.0.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
         internal static RagdollModBase Instance;
         internal static ManualLogSource mls;
-        internal Config Configuration;
+        internal static Config Configuration;
 
         internal static AssetBundle currentAsset;
         internal static GameObject[] ragdolls;
         internal static AudioClip[] soundClips;
         internal static bool foundRagdolls;
-        internal Vector3 lastExplodePos;
+        internal Vector3[] lastExplodePos;
 
         void Awake()
         {
@@ -59,7 +59,7 @@ namespace MaskedRagdoll
             }
 
             Configuration = new Config(Config);
-            lastExplodePos = new Vector3();
+            lastExplodePos = new Vector3[] { default, default, default };
 
             harmony.PatchAll(typeof(RagdollModBase));
             harmony.PatchAll(typeof(AICollisionPatch));

@@ -11,10 +11,10 @@ namespace EggFixes
     {
         public const string modGUID = "EasterEggFixes";
         private const string modName = "EasterEggFixes";
-        private const string modVersion = "2.0.1";
+        private const string modVersion = "2.0.2";
 
         private readonly Harmony harmony = new Harmony(modGUID);
-        internal ConfigControl Configuration;
+        internal static ConfigControl Configuration;
 
         internal static EasterEggFixesModBase Instance;
         internal static ManualLogSource mls;

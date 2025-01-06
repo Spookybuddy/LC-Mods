@@ -2,7 +2,6 @@
 using UnityEngine;
 using Unity.AI.Navigation;
 using System.Linq;
-using System.Reflection;
 
 namespace MapImprovements.Patches
 {
@@ -22,7 +21,7 @@ namespace MapImprovements.Patches
         static void AddImprovements(RoundManager __instance)
         {
             //Exit if mod is disabled
-            if (!MapImprovementModBase.Instance.Configuration.ModEnabled) return;
+            if (!ConfigControl.Instance.ModEnabled) return;
             //Check for planet name
             string nameLevel = __instance.currentLevel.name.ToLower().Trim();
             string[] level = nameLevel.Split(new[] { "level" }, System.StringSplitOptions.RemoveEmptyEntries);
@@ -73,7 +72,7 @@ namespace MapImprovements.Patches
             }
             //Empty / Disabled; Exit
             if (MapImprovementModBase.Instance.Moons[moon].Adjustments == null || MapImprovementModBase.Instance.Moons[moon].Adjustments.Count < 1) return;
-            if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].Enabled) return;
+            if (!ConfigControl.Instance.cfgMoons[moon].Enabled) return;
             //Apply mod
             Mod(moon, __instance.playersManager.randomMapSeed, container);
             //Bake Navmesh for custom moons - Maybe also bake for no outside hazard spawns?
@@ -89,23 +88,23 @@ namespace MapImprovements.Patches
         static void Mod(int moon, int randomSeed, GameObject container)
         {
             //Check enum and randomize
-            bool vanilla = MapImprovementModBase.Instance.Configuration.cfgMoons[moon].Vanilla;
+            bool vanilla = ConfigControl.Instance.cfgMoons[moon].Vanilla;
             int fireOffset = 0;
 
             //Always spawning objects
-            for (int i = 0; i < MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects.Length; i++) {
-                if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) fireOffset += ApplyObject(moon, i, container.transform);
+            for (int i = 0; i < ConfigControl.Instance.cfgMoons[moon].cfgObjects.Length; i++) {
+                if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) fireOffset += ApplyObject(moon, i, container.transform);
             }
 
             //Calculate the base spawn, exiting if the vanilla is selected / oob / disabled from spawning (but that should never happen)
             int index = RandomIndex(moon, randomSeed, vanilla);
             if (index < 0 || index >= MapImprovementModBase.Instance.Moons[moon].Adjustments.Count) return;
-            if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Disabled)) return;
-            if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Never)) return;
+            if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Disabled)) return;
+            if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Never)) return;
             fireOffset += ApplyObject(moon, index, container.transform);
 
             //New System
-            switch (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings) {
+            switch (ConfigControl.Instance.cfgMoons[moon].cfgObjects[index].Settings) {
                 case ConfigControl.Setting.CombineA:
                     if (index != 0) ApplyObject(moon, 0, container.transform, fireOffset);
                     break;
@@ -150,10 +149,10 @@ namespace MapImprovements.Patches
         {
             //Use the random seed to determine which adjustment to spawn, if there are multiple
             byte mod = 0;
-            for (int i = 0; i < MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects.Length; i++) {
-                if (MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) continue;
-                if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Disabled)) {
-                    if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Never)) mod += (byte)Mathf.Pow(2, i);
+            for (int i = 0; i < ConfigControl.Instance.cfgMoons[moon].cfgObjects.Length; i++) {
+                if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) continue;
+                if (!ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Disabled)) {
+                    if (!ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Never)) mod += (byte)Mathf.Pow(2, i);
                 }
             }
             if (mod > 0) {
@@ -196,7 +195,7 @@ namespace MapImprovements.Patches
         //Roll for spawning the desired index 50/50
         static bool Fifty_Fifty(int moon, int seed, int index)
         {
-            if (!MapImprovementModBase.Instance.Configuration.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Disabled)) return (seed % 2) == 0;
+            if (!ConfigControl.Instance.cfgMoons[moon].cfgObjects[index].Settings.Equals(ConfigControl.Setting.Disabled)) return (seed % 2) == 0;
             else return false;
         }
 
@@ -330,9 +329,9 @@ namespace MapImprovements.Patches
                     return 0;
                 case MapImprovementModBase.EditEnums.HasTrees:
                     MapImprovementModBase.mls.LogInfo($"Adding script to all trees without one...");
-                    GameObject[] trees = GameObject.FindGameObjectsWithTag("Wood");
+                    GameObject[] trees = GameObject.FindGameObjectsWithTag(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag);
                     for (int t = 0; t < trees.Length; t++) {
-                        if (trees[t].name.ToLower().Equals("treebreaktrigger")) {
+                        if (trees[t].name.ToLower().Equals((MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name).ToLower())) {
                             if (!trees[t].TryGetComponent<Collider>(out _)) continue;
                             if (!trees[t].TryGetComponent<TerrainObstacleTrigger>(out _)) trees[t].AddComponent<TerrainObstacleTrigger>();
                         }

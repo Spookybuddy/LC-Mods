@@ -18,13 +18,13 @@ namespace CustomOutsideObjects
         //Mod declaration
         public const string modGUID = "CustomOutsideObjects";
         private const string modName = "CustomOutsideObjects";
-        private const string modVersion = "1.1.0";
+        private const string modVersion = "1.2.0";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
         internal static CustomOutsideModBase Instance;
         internal static ManualLogSource mls;
-        internal ConfigControl Configuration;
+        internal static ConfigControl Configuration;
 
         //Mod variables
         internal static string[] foundOutsideAssetFiles;

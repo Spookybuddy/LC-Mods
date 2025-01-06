@@ -128,7 +128,7 @@ namespace MaskedRagdoll.Patches
                     case -209:
                         //Giant
                         RagdollModBase.mls.LogInfo($"Masked grabbed by Giant!");
-                        ForestGiantAI giant = FindNearbyEnemies(__instance, "ForestGiant", 5f) as ForestGiantAI;
+                        ForestGiantAI giant = FindNearbyEnemies(__instance, "ForestGiant", 9f) as ForestGiantAI;
                         if (giant.IsOwner) giant.GrabPlayerServerRpc(-5);
                         recoil = skip;
                         break;
@@ -213,7 +213,7 @@ namespace MaskedRagdoll.Patches
                     case -219:
                         //Giant fall over
                         RagdollModBase.mls.LogInfo($"Giant fell on Masked!");
-                        ForestGiantAI giant2 = FindNearbyEnemies(__instance, "ForestGiant", 5f) as ForestGiantAI;
+                        ForestGiantAI giant2 = FindNearbyEnemies(__instance, "ForestGiant", 9f) as ForestGiantAI;
                         if (giant2 != null) {
                             if (component.IsOwner) component.SyncPositionToClients();
                             recoil = Vector3.Scale((__instance.serverPosition - giant2.deathFallPosition.position).normalized, new Vector3(24, 0.2f, 24)) + Vector3.up;
@@ -245,7 +245,15 @@ namespace MaskedRagdoll.Patches
                         break;
                     default:
                         //Other: Gun, Explosion, etc
-                        float expDis = Vector3.Distance(__instance.serverPosition, RagdollModBase.Instance.lastExplodePos);
+                        //Find nearest explosion to masked within the last 3
+                        float expDis = 1000;
+                        int indx = 0;
+                        for (int i = 0; i < RagdollModBase.Instance.lastExplodePos.Length; i++) {
+                            if (Vector3.Distance(__instance.serverPosition, RagdollModBase.Instance.lastExplodePos[i]) < expDis) {
+                                expDis = Vector3.Distance(__instance.serverPosition, RagdollModBase.Instance.lastExplodePos[i]);
+                                indx = i;
+                            }
+                        }
 
                         //Use the distance from the hit to determine the force applied
                         if (playerWhoHit != null) {
@@ -255,7 +263,7 @@ namespace MaskedRagdoll.Patches
                             recoil = (__instance.serverPosition - playerWhoHit.transform.position).normalized * (force * ((expDis + 15) / (expDis + 1))) + (Vector3.up * 2);
                         } else if (expDis < 4.5f) {
                             RagdollModBase.mls.LogInfo($"Masked exploded! @ " + RagdollModBase.Instance.lastExplodePos);
-                            recoil = (__instance.serverPosition - RagdollModBase.Instance.lastExplodePos).normalized * (26 / (expDis - 6.5f) + 39) + (Vector3.up * 3);
+                            recoil = ((__instance.serverPosition - RagdollModBase.Instance.lastExplodePos[indx]).normalized + Vector3.up) * (26 / (expDis - 6.5f) + 39);
                         } else {
                             //Catch for unknown recoil
                             RagdollModBase.mls.LogWarning($"Masked killed???");
@@ -307,13 +315,13 @@ namespace MaskedRagdoll.Patches
             LODGroup[] masks = body.transform.GetComponentsInChildren<LODGroup>();
             if (!(__instance.maskTypes[0].activeSelf ^ __instance.maskTypes[1].activeSelf)) masks[0].gameObject.SetActive(true);
             else for (int i = 0; i < 2; i++) masks[i].gameObject.SetActive(__instance.maskTypes[i].activeSelf);
-            if (!RagdollModBase.Instance.Configuration.Masked) for (int i = 0; i < masks.Length; i++) masks[i].gameObject.SetActive(false);
+            if (!Config.Instance.Masked) for (int i = 0; i < masks.Length; i++) masks[i].gameObject.SetActive(false);
 
             //Ragdoll velocity
             Rigidbody[] limbs = body.GetComponentsInChildren<Rigidbody>();
-            if (RagdollModBase.Instance.Configuration.Multiplier != 1 && recoil != default) {
+            if (Config.Instance.Multiplier != 1 && recoil != default) {
                 RagdollModBase.mls.LogInfo($"Multiplying ragdoll force.");
-                recoil *= RagdollModBase.Instance.Configuration.Multiplier;
+                recoil *= Config.Instance.Multiplier;
             }
             for (int i = 0; i < limbs.Length; i++) limbs[i].AddForce(recoil, ForceMode.VelocityChange);
         }
@@ -375,7 +383,7 @@ namespace MaskedRagdoll.Patches
         }
 
         //Return the nearest enemy of matching name to use as the attacker transform
-        private static EnemyAI FindNearbyEnemies(MaskedPlayerEnemy masked, string match, float radiusOverride = 3.5f)
+        private static EnemyAI FindNearbyEnemies(MaskedPlayerEnemy masked, string match, float radiusOverride = 5f)
         {
             RaycastHit[] nearby = Physics.SphereCastAll(masked.serverPosition + Vector3.up, radiusOverride, Vector3.down, 2.5f, 524288);
             float nearest = 15;

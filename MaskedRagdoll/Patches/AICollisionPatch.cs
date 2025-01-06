@@ -12,6 +12,8 @@ namespace MaskedRagdoll.Patches
         {
             if (!other.CompareTag("Enemy") && !other.CompareTag("Untagged")) return true;
 
+            if (!Config.Instance.EnemyCollision) return true;
+
             //Masked hit another enemy
             if (other.gameObject.TryGetComponent<EnemyAICollisionDetect>(out EnemyAICollisionDetect component)) {
                 //Dead or both same creature
