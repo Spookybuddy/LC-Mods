@@ -76,6 +76,7 @@ namespace MapImprovements
 
             FastBufferWriter stream = new FastBufferWriter(IntSize, Allocator.Temp);
             MessageManager.SendNamedMessage("MapImprovements_OnRequestConfigSync", 0uL, stream);
+            MapImprovementModBase.mls.LogWarning($"Requested sync");
         }
 
         public static void OnRequestSync(ulong clientId, FastBufferReader _)

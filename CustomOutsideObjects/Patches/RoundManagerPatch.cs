@@ -59,54 +59,54 @@ namespace CustomOutsideObjects.Patches
             List<SpawnableOutsideObjectWithRarity> modifiedList = new List<SpawnableOutsideObjectWithRarity>();
             for (int valid = 0; valid < CustomOutsideModBase.loadedInjectableOutsideObjects.Count; valid++) {
                 //Disabled object is skipped immediately
-                if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Enabled) continue;
+                if (!ConfigControl.Instance.allObjects[valid].Enabled) continue;
                 //Base game moons enabled
                 switch (level[0]) {
                     case "experimentation":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Exp) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Exp) continue;
                         break;
                     case "assurance":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Ass) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Ass) continue;
                         break;
                     case "vow":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Vow) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Vow) continue;
                         break;
                     case "offense":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Off) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Off) continue;
                         break;
                     case "march":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Mar) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Mar) continue;
                         break;
                     case "adamance":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Ada) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Ada) continue;
                         break;
                     case "rend":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Ren) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Ren) continue;
                         break;
                     case "dine":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Din) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Din) continue;
                         break;
                     case "titan":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Tit) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Tit) continue;
                         break;
                     case "embrion":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Emb) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Emb) continue;
                         break;
                     case "artifice":
-                        if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].Art) continue;
+                        if (!ConfigControl.Instance.allObjects[valid].Art) continue;
                         break;
                     case "companybuilding":
                         return;
                     default:
                         //Custom Moons
-                        for (int i = 0; i < CustomOutsideModBase.Instance.Configuration.allObjects[valid].cfgCustomMoons.Length; i++) {
+                        for (int i = 0; i < ConfigControl.Instance.allObjects[valid].cfgCustomMoons.Length; i++) {
                             for (int p = 0; p < planet.Length; p++) {
-                                if (CustomOutsideModBase.Instance.Configuration.allObjects[valid].cfgCustomMoons[i].MoonName.ToLower().Equals(planet[p])) {
-                                    if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].cfgCustomMoons[i].Custom) goto CONTINUELOOP;
+                                if (ConfigControl.Instance.allObjects[valid].cfgCustomMoons[i].MoonName.ToLower().Equals(planet[p])) {
+                                    if (!ConfigControl.Instance.allObjects[valid].cfgCustomMoons[i].Custom) goto CONTINUELOOP;
                                 }
                             }
-                            if (CustomOutsideModBase.Instance.Configuration.allObjects[valid].cfgCustomMoons[i].MoonName.ToLower().Equals(level[0])) {
-                                if (!CustomOutsideModBase.Instance.Configuration.allObjects[valid].cfgCustomMoons[i].Custom) goto CONTINUELOOP;
+                            if (ConfigControl.Instance.allObjects[valid].cfgCustomMoons[i].MoonName.ToLower().Equals(level[0])) {
+                                if (!ConfigControl.Instance.allObjects[valid].cfgCustomMoons[i].Custom) goto CONTINUELOOP;
                             }
                         }
                         break;

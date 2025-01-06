@@ -13,6 +13,7 @@ namespace MaskedRagdoll.Patches
 		[HarmonyPrefix]
 		static void FallOver(ref ForestGiantAI __instance)
         {
+			if (!Config.Instance.MiscKilling) return;
 			RaycastHit[] array = Physics.SphereCastAll(__instance.deathFallPosition.position, 2.7f, __instance.deathFallPosition.forward, 4, 524288);
 			for (int i = 0; i < array.Length; i++) {
 				if (array[i].transform.TryGetComponent<MaskedPlayerEnemy>(out MaskedPlayerEnemy masked)) masked.HitEnemy(4, null, true, -219);
@@ -45,7 +46,7 @@ namespace MaskedRagdoll.Patches
             } else return true;
         }
 
-		//Custom IEnum that follows the animation procedures of the base IEnum without nay of the player references
+		//Custom IEnum that follows the animation procedures of the base IEnum without any of the player references
 		private static IEnumerator EatPlayerOverride(ForestGiantAI __instance, Vector3 enemyPosition, int enemyYRot)
 		{
 			__instance.creatureAnimator.SetTrigger("EatPlayer");
