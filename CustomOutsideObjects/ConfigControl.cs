@@ -161,6 +161,7 @@ namespace CustomOutsideObjects
 
         public ConfigControl(ConfigFile cfg)
         {
+            InitInstance(this);
             //Bools to check tag types
             Tagged tags = new Tagged { valid = new bool[CustomOutsideModBase.tags.Length] };
             //Custom moon checking enabled

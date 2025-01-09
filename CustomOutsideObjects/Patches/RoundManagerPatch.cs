@@ -14,47 +14,7 @@ namespace CustomOutsideObjects.Patches
             string nameLevel = ___currentLevel.name.ToLower().Trim();
             string[] planet = namePlanet.Split(' ');
             string[] level = nameLevel.Split(new[] { "level", "selectable" }, System.StringSplitOptions.RemoveEmptyEntries);
-            //Skip if level has been preset in start of round
-            switch (level[0]) {
-                case "experimentation":
-                    if (CustomOutsideModBase.Set_Experimentation) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "assurance":
-                    if (CustomOutsideModBase.Set_Assurance) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "vow":
-                    if (CustomOutsideModBase.Set_Vow) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "offense":
-                    if (CustomOutsideModBase.Set_Offense) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "march":
-                    if (CustomOutsideModBase.Set_March) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "adamance":
-                    if (CustomOutsideModBase.Set_Adamance) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "rend":
-                    if (CustomOutsideModBase.Set_Rend) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "dine":
-                    if (CustomOutsideModBase.Set_Dine) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "titan":
-                    if (CustomOutsideModBase.Set_Titan) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "embrion":
-                    if (CustomOutsideModBase.Set_Embrion) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "artifice":
-                    if (CustomOutsideModBase.Set_Artifice) { CustomOutsideModBase.mls.LogInfo($"Planet {level[0]} was pre-loaded."); return; }
-                    break;
-                case "companybuilding":
-                    return;
-                default:
-                    break;
-            }
-            CustomOutsideModBase.mls.LogWarning($"Planet {level[0]} was not pre-loaded. Adding assets now.");
+            CustomOutsideModBase.mls.LogWarning($"Planet {level[0]}.");
             //Modified custom object list accounting for enabled & blacklist
             List<SpawnableOutsideObjectWithRarity> modifiedList = new List<SpawnableOutsideObjectWithRarity>();
             for (int valid = 0; valid < CustomOutsideModBase.loadedInjectableOutsideObjects.Count; valid++) {

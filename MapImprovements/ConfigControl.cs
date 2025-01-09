@@ -70,7 +70,7 @@ namespace MapImprovements
                 cfgMoons[i].cfgObjects = new ObjectConfig[MapImprovementModBase.Instance.Moons[i].Adjustments.Count];
                 for (int j = 0; j < MapImprovementModBase.Instance.Moons[i].Adjustments.Count; j++) {
                     if (MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object == null) continue;
-                    cfgMoons[i].cfgObjects[j].cfgSetting = cfg.Bind(name, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object.name, Setting.Enabled, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Description);
+                    cfgMoons[i].cfgObjects[j].cfgSetting = cfg.Bind(name, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object.name.Replace('_', ' '), Setting.Enabled, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Description);
                 }
             }
             MapImprovementModBase.mls.LogInfo($"Generated Config file for all loaded objects.");
