@@ -88,7 +88,6 @@
     <Compile Include="BreakObject.cs" />
     <Compile Include="ConfigControl.cs" />
     <Compile Include="Patches\RoundManagerPatch.cs" />
-    <Compile Include="Patches\StartOfRoundPatch.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SyncedInstance.cs" />

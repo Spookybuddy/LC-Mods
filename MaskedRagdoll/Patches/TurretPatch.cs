@@ -11,7 +11,7 @@ namespace MaskedRagdoll.Patches
         [HarmonyPrefix]
         static void Gunfire(ref Turret __instance, ref float ___turretInterval)
         {
-            if (!Config.Instance.MiscKilling) return;
+            if (!Config.Instance.Turret) return;
             if (__instance.turretMode.Equals(TurretMode.Firing) || __instance.turretMode.Equals(TurretMode.Berserk)) {
                 if (___turretInterval >= 0.21f) {
                     Ray lineOfFire = new Ray(__instance.aimPoint.position, __instance.aimPoint.forward);

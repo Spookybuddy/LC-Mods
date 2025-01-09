@@ -13,7 +13,7 @@ namespace MaskedRagdoll.Patches
 		[HarmonyPrefix]
 		static void FallOver(ref ForestGiantAI __instance)
         {
-			if (!Config.Instance.MiscKilling) return;
+			if (!Config.Instance.GiantFall) return;
 			RaycastHit[] array = Physics.SphereCastAll(__instance.deathFallPosition.position, 2.7f, __instance.deathFallPosition.forward, 4, 524288);
 			for (int i = 0; i < array.Length; i++) {
 				if (array[i].transform.TryGetComponent<MaskedPlayerEnemy>(out MaskedPlayerEnemy masked)) masked.HitEnemy(4, null, true, -219);

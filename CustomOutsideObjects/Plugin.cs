@@ -44,25 +44,23 @@ namespace CustomOutsideObjects
             "Wood"
         };
 
-        //Mod internal variables
-        internal static bool Set_Experimentation;
-        internal static bool Set_Assurance;
-        internal static bool Set_Vow;
-        internal static bool Set_Offense;
-        internal static bool Set_March;
-        internal static bool Set_Adamance;
-        internal static bool Set_Rend;
-        internal static bool Set_Dine;
-        internal static bool Set_Titan;
-        internal static bool Set_Embrion;
-        internal static bool Set_Artifice;
-
         void Awake()
         {
             //Initialize mod; Find all .coo files, finding any Spawnable Outside Objects. Then check for breakability. Then add to list
             if (Instance == null) Instance = this;
             mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
-            foundOutsideAssetFiles = Directory.GetFiles(Path.GetDirectoryName(Info.Location), "*.coo");
+
+            //Search all directories for *.coo files
+            string location = Path.GetDirectoryName(Info.Location).ToString();
+            string[] files = location.Split('\\');
+            for (int c = files.Length - 1; c > 0; c--) {
+                if (files[c].Equals("plugins")) {
+                    for (int j = 0; j < files.Length - c - 1; j++) location = Directory.GetParent(location).ToString();
+                    foundOutsideAssetFiles = Directory.GetFiles(location, "*.coo", SearchOption.AllDirectories);
+                    break;
+                }
+            }
+
             //Nested so much for error catching: | No .coo files | Invalid asset bundle | No spawnable rarities | Spawnable rarity has no object
             if (foundOutsideAssetFiles != null && foundOutsideAssetFiles.Length > 0) {
                 for (int x = 0; x < foundOutsideAssetFiles.Length; x++) {
@@ -110,8 +108,8 @@ namespace CustomOutsideObjects
             }
 
             //Find all custom moons by locating the parent plugins folder. All .lethalbundle files are found, and if there is X & X()scene(s), add that as custom moon
-            string location = Path.GetDirectoryName(Info.Location).ToString();
-            string[] files = location.Split('\\');
+            location = Path.GetDirectoryName(Info.Location).ToString();
+            files = location.Split('\\');
             for (int i = files.Length - 1; i > 0; i--) {
                 if (files[i].Equals("plugins")) {
                     for (int j = 0; j < files.Length - i - 1; j++) location = Directory.GetParent(location).ToString();
@@ -165,7 +163,6 @@ namespace CustomOutsideObjects
             Configuration = new ConfigControl(Config);
             mls.LogInfo($"Generated Config file for all loaded objects.");
             harmony.PatchAll(typeof(CustomOutsideModBase));
-            harmony.PatchAll(typeof(StartOfRoundPatch));
             harmony.PatchAll(typeof(RoundManagerPatch));
             mls.LogInfo($"Outside Objects loaded.");
         }
