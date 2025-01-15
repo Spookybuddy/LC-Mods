@@ -2,6 +2,7 @@
 using UnityEngine;
 using Unity.AI.Navigation;
 using System.Linq;
+using System.Collections;
 
 namespace MapImprovements.Patches
 {
@@ -73,6 +74,11 @@ namespace MapImprovements.Patches
             //Empty / Disabled; Exit
             if (MapImprovementModBase.Instance.Moons[moon].Adjustments == null || MapImprovementModBase.Instance.Moons[moon].Adjustments.Count < 1) return;
             if (!ConfigControl.Instance.cfgMoons[moon].Enabled) return;
+
+            if (GameObject.Find("WideDoorFrame") != null) {
+                MapImprovementModBase.mls.LogError($"Wide door found");
+            }
+
             //Apply mod
             Mod(moon, __instance.playersManager.randomMapSeed, container);
             //Bake Navmesh for custom moons - Maybe also bake for no outside hazard spawns?
@@ -138,6 +144,14 @@ namespace MapImprovements.Patches
                     int second = RandomIndex(moon, randomSeed, vanilla);
                     if (second == index || second < 0 || second >= MapImprovementModBase.Instance.Moons[moon].Adjustments.Count) return;
                     ApplyObject(moon, second, container.transform, fireOffset);
+                    break;
+                case ConfigControl.Setting.RandomAll:
+                    for (int i = 0; i < MapImprovementModBase.Instance.Moons[moon].Adjustments.Count; i++) {
+                        if (index != i) {
+                            if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) continue;
+                            if (Fifty_Fifty(moon, (int)(randomSeed * 5 / 3.0f), i)) ApplyObject(moon, i, container.transform, fireOffset);
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -226,6 +240,7 @@ namespace MapImprovements.Patches
                     GameObject[] inactive = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(sr => !sr.gameObject.activeInHierarchy).ToArray();
                     for (int j = 0; j < inactive.Length; j++) {
                         if (inactive[j].tag.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag)) {
+                            //if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex == -1) StartCoroutine(DelayedAction(inactive[j], moon, index, i, fireOffset));
                             _return += ApplyEnum(inactive[j], moon, index, i, fireOffset);
                             break;
                         }
@@ -237,12 +252,16 @@ namespace MapImprovements.Patches
                             MapImprovementModBase.mls.LogError($"No Untagged object matched the name {MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name}! Skipping");
                             continue;
                         }
-                        if (found.tag.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag)) _return += ApplyEnum(found, moon, index, i, fireOffset);
+                        if (found.tag.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag)) {
+                            //if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex == -1) StartCoroutine(DelayedAction(found, moon, index, i, fireOffset));
+                            _return += ApplyEnum(found, moon, index, i, fireOffset);
+                        }
                         continue;
                     }
                     GameObject[] find = GameObject.FindGameObjectsWithTag(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag);
                     for (int j = 0; j < find.Length; j++) {
                         if (find[j].name.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name)) {
+                            //if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex == -1) StartCoroutine(DelayedAction(find[j], moon, index, i, fireOffset));
                             _return += ApplyEnum(find[j], moon, index, i, fireOffset);
                             break;
                         }
@@ -385,6 +404,12 @@ namespace MapImprovements.Patches
         {
             find.transform.localScale = Vector3.one;
             find.transform.localScale = new Vector3(scale.x / find.transform.lossyScale.x, scale.y / find.transform.lossyScale.y, scale.z / find.transform.lossyScale.z);
+        }
+
+        static IEnumerator DelayedAction(GameObject obj, int moon, int index, int i, int offset)
+        {
+            yield return new WaitForSeconds(0.2f);
+            ApplyEnum(obj, moon, index, i, offset);
         }
     }
 }

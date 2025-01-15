@@ -12,14 +12,15 @@ namespace MapImprovements
             Disabled,
             Always,
             Never,
-            CombineA,
-            CombineB,
-            CombineC,
-            CombineAll,
             RandomA,
             RandomB,
             RandomC,
-            RandomAny
+            RandomAny,
+            RandomAll,
+            CombineA,
+            CombineB,
+            CombineC,
+            CombineAll
         }
         internal bool ModEnabled
         {
@@ -59,18 +60,18 @@ namespace MapImprovements
         {
             InitInstance(this);
             cfgMoons = new MoonConfig[MapImprovementModBase.Instance.Moons.Count];
-            cfgModEnabled = cfg.Bind("Basics", "Enable Map Improvements", true, "Turns the mod on.");
-            _ = cfg.Bind("Basics", "Guide to Dropdown:", Setting.Enabled, "Enabled: Object can spawn.\nDiabled: Object cannot spawn.\nAlways: Object always spawns.\nNever: Object can only be spawned when Combined/Randomed from another Object.\nCombine A/B/C: Spawns Object A/B/C too.\nCombineAll: Spawns all other Objects.\nRandom A/B/C: 50% to spawn Object A/B/C too.\nRandomAny: 50% to spawn any other Object.");
+            cfgModEnabled = cfg.Bind("! Basics !", "Enable Map Improvements", true, "Turns the mod on.");
+            _ = cfg.Bind("! Basics !", "Guide to Dropdown:", Setting.Enabled, "Enabled: Object can spawn.\nDiabled: Object cannot spawn.\nAlways: Object always spawns.\nNever: Object can only be spawned when Combined/Randomed from another Object.\nCombine A/B/C: Spawns Object A/B/C too.\nCombineAll: Spawns all other Objects.\nRandom A/B/C: 50% to spawn Object A/B/C too.\nRandomAny: 50% to spawn any other Object.\nRandomAll: 50% chance to spawn each other Object");
             for (int i = 0; i < cfgMoons.Length; i++) {
                 if (MapImprovementModBase.Instance.Moons[i].Adjustments == null || MapImprovementModBase.Instance.Moons[i].Adjustments.Count < 1) continue;
                 string name = MapImprovementModBase.Instance.Moons[i].Planet;
                 name = name[0].ToString().ToUpper() + name.Substring(1);
                 cfgMoons[i].cfgEnabled = cfg.Bind(name, "Enabled", true, "Enable improvements spawning on " + name);
-                cfgMoons[i].cfgIncludeDefault = cfg.Bind(name, "Vanilla", true, "Adds chance for the vanilla " + name + " to spawn.");
+                cfgMoons[i].cfgIncludeDefault = cfg.Bind(name, "Vanilla", true, "Adds chance for the original " + name + " to spawn.");
                 cfgMoons[i].cfgObjects = new ObjectConfig[MapImprovementModBase.Instance.Moons[i].Adjustments.Count];
                 for (int j = 0; j < MapImprovementModBase.Instance.Moons[i].Adjustments.Count; j++) {
                     if (MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object == null) continue;
-                    cfgMoons[i].cfgObjects[j].cfgSetting = cfg.Bind(name, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object.name.Replace('_', ' '), Setting.Enabled, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Description);
+                    cfgMoons[i].cfgObjects[j].cfgSetting = cfg.Bind(name, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object.name.Replace('_', ' '), MapImprovementModBase.Instance.Moons[i].Adjustments[j].Default, MapImprovementModBase.Instance.Moons[i].Adjustments[j].Description);
                 }
             }
             MapImprovementModBase.mls.LogInfo($"Generated Config file for all loaded objects.");
