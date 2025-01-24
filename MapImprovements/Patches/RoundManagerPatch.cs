@@ -1,8 +1,8 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 using Unity.AI.Navigation;
-using System.Linq;
-using System.Collections;
+using static MapImprovements.MapImprovementModBase;
+using System;
 
 namespace MapImprovements.Patches
 {
@@ -17,76 +17,58 @@ namespace MapImprovements.Patches
             WaterMat = GameObject.Find("TimeAndWeather").transform.GetChild(4).GetChild(1).GetComponent<MeshRenderer>().material;
         }
 
+        [HarmonyPatch("FinishGeneratingNewLevelClientRpc")]
+        [HarmonyPostfix]
+        static void FixChameleonDoors(RoundManager __instance) {
+            if (!MapImprovementModBase.Instance.Chameleon || !ConfigControl.Instance.ModEnabled) return;
+            //TESTING
+            GameObject Chameleon = GameObject.Find("WideDoorFrame(Clone)");
+            if (Chameleon != null) {
+                int id = GetMoonIndex(__instance.currentLevel.name.ToLower().Trim());
+                if (id < 0) return;
+                switch (id) {
+                    case 0:
+                        if (GameObject.Find("Experimentation A(Clone)")) GameObject.Destroy(Chameleon);
+                        return;
+                    case 7:
+                        if (GameObject.Find("Dine A(Clone)")) {
+                            ApplyEnum(Chameleon, new Edits("", "", EditEnums.AllTransforms, new Vector3(-122.04f, -15.25f, -6.9f), new Vector3(-90, 180, -89.2f), G: true), 0);
+                            MapImprovementModBase.mls.LogInfo("Moved main door.");
+                        }
+                        return;
+                    default:
+                        return;
+                }
+            }
+            //GameObject DoorA = GameObject.Find("WideDoorFrame(Clone)/DoorMeshFake");
+        }
+
         [HarmonyPatch("SetChallengeFileRandomModifiers")]
         [HarmonyPrefix]
         static void AddImprovements(RoundManager __instance)
         {
             //Exit if mod is disabled
             if (!ConfigControl.Instance.ModEnabled) return;
-            //Check for planet name
-            string nameLevel = __instance.currentLevel.name.ToLower().Trim();
-            string[] level = nameLevel.Split(new[] { "level" }, System.StringSplitOptions.RemoveEmptyEntries);
+
             GameObject container = GameObject.FindGameObjectWithTag("MapPropsContainer");
             if (container == null) return;
-            int moon;
-            switch (level[0]) {
-                case "experimentation":
-                    moon = 0;
-                    break;
-                case "assurance":
-                    moon = 1;
-                    break;
-                case "vow":
-                    moon = 2;
-                    break;
-                case "offense":
-                    moon = 3;
-                    break;
-                case "march":
-                    moon = 4;
-                    break;
-                case "adamance":
-                    moon = 5;
-                    break;
-                case "rend":
-                    moon = 6;
-                    break;
-                case "dine":
-                    moon = 7;
-                    break;
-                case "titan":
-                    moon = 8;
-                    break;
-                case "artifice":
-                    moon = 9;
-                    break;
-                case "embrion":
-                    moon = 10;
-                    break;
-                case "companybuilding":
-                    moon = 11;
-                    break;
-                default:
-                    moon = MapImprovementModBase.Instance.Moons.FindIndex(x => x.Planet.ToLower().Equals(level[0]));
-                    if (moon < 0) return;
-                    break;
-            }
+            int moon = GetMoonIndex(__instance.currentLevel.name.ToLower().Trim());
+            if (moon < 0) return;
+
             //Empty / Disabled; Exit
             if (MapImprovementModBase.Instance.Moons[moon].Adjustments == null || MapImprovementModBase.Instance.Moons[moon].Adjustments.Count < 1) return;
             if (!ConfigControl.Instance.cfgMoons[moon].Enabled) return;
 
-            if (GameObject.Find("WideDoorFrame") != null) {
-                MapImprovementModBase.mls.LogError($"Wide door found");
-            }
-
             //Apply mod
             Mod(moon, __instance.playersManager.randomMapSeed, container);
+
+            //Trying out outside hazards :)
+            OutsideHazards(__instance.currentLevel);
+
             //Bake Navmesh for custom moons - Maybe also bake for no outside hazard spawns?
-            if (moon > 11) {
-                GameObject navigation = GameObject.FindGameObjectWithTag("OutsideLevelNavMesh");
-                if (navigation != null) {
-                    if (navigation.TryGetComponent<NavMeshSurface>(out NavMeshSurface build)) build.BuildNavMesh();
-                }
+            GameObject navigation = GameObject.FindGameObjectWithTag("OutsideLevelNavMesh");
+            if (navigation != null) {
+                if (navigation.TryGetComponent<NavMeshSurface>(out NavMeshSurface build)) build.BuildNavMesh();
             }
         }
 
@@ -234,76 +216,74 @@ namespace MapImprovements.Patches
         static int AdjustObject(int moon, int index, int fireOffset = 0)
         {
             int _return = 0;
-            for (int i = 0; i < MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit.Count; i++) {
-                //Search for inactive only when the task is to enable
-                if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Do.Equals(MapImprovementModBase.EditEnums.Enable)) {
-                    GameObject[] inactive = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(sr => !sr.gameObject.activeInHierarchy).ToArray();
-                    for (int j = 0; j < inactive.Length; j++) {
-                        if (inactive[j].tag.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag)) {
-                            //if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex == -1) StartCoroutine(DelayedAction(inactive[j], moon, index, i, fireOffset));
-                            _return += ApplyEnum(inactive[j], moon, index, i, fireOffset);
-                            break;
-                        }
-                    }
-                } else {
-                    if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag.Equals("Untagged")) {
-                        GameObject found = GameObject.Find(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name);
-                        if (found == null) {
-                            MapImprovementModBase.mls.LogError($"No Untagged object matched the name {MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name}! Skipping");
-                            continue;
-                        }
-                        if (found.tag.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag)) {
-                            //if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex == -1) StartCoroutine(DelayedAction(found, moon, index, i, fireOffset));
-                            _return += ApplyEnum(found, moon, index, i, fireOffset);
-                        }
-                        continue;
-                    }
-                    GameObject[] find = GameObject.FindGameObjectsWithTag(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag);
-                    for (int j = 0; j < find.Length; j++) {
-                        if (find[j].name.Equals(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name)) {
-                            //if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex == -1) StartCoroutine(DelayedAction(find[j], moon, index, i, fireOffset));
-                            _return += ApplyEnum(find[j], moon, index, i, fireOffset);
-                            break;
-                        }
-                    }
-                }
-            }
+            for (int i = 0; i < MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit.Count; i++) _return += FindObject(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i], fireOffset);
             return _return;
         }
 
-        //Parse the enum
-        static int ApplyEnum(GameObject find, int moon, int index, int i, int fireOffset)
+        //Find object in given edit
+        static int FindObject(MapImprovementModBase.Edits edit, int fireOffset = 0)
+        {
+            if (edit.Do.Equals(MapImprovementModBase.EditEnums.Enable) || edit.If.Equals(MapImprovementModBase.EditEnums.Enable)) {
+                GameObject[] inactive = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                for (int j = 0; j < inactive.Length; j++) {
+                    if (inactive[j].name.Equals(edit.Name) && inactive[j].tag.Equals(edit.Tag)) return ApplyEnum(inactive[j], edit, fireOffset);
+                }
+            } else {
+                if (edit.Tag.Equals("Untagged")) {
+                    GameObject found = GameObject.Find(edit.Name);
+                    if (found == null) {
+                        MapImprovementModBase.mls.LogError($"No Untagged object matched the name {edit.Name}! Skipping");
+                        return 0;
+                    }
+                    if (found.tag.Equals(edit.Tag)) return ApplyEnum(found, edit, fireOffset);
+                } else {
+                    GameObject[] find = GameObject.FindGameObjectsWithTag(edit.Tag);
+                    for (int j = 0; j < find.Length; j++) {
+                        if (find[j].name.Equals(edit.Name)) return ApplyEnum(find[j], edit, fireOffset);
+                    }
+                }
+            }
+            return 0;
+        }
+
+        //Apply the edit enum
+        static int ApplyEnum(GameObject find, MapImprovementModBase.Edits edit, int fireOffset)
         {
             if (find == null) return 0;
-            bool global = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Global;
-            switch (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Do) {
+            bool global = edit.Global;
+            if (edit.Do.Equals(MapImprovementModBase.EditEnums.IfFound)) {
+                MapImprovementModBase.mls.LogInfo($"{find.name} was found, applying enum {edit.If.Do}");
+                MapImprovementModBase.Edits onFound = new MapImprovementModBase.Edits(edit.If.Name, edit.If.Tag, edit.If.Do, edit.Postion, edit.Rotation, edit.Scale, edit.Global, edit.FireExitIndex);
+                return FindObject(onFound, fireOffset);
+            }
+            switch (edit.Do) {
                 case MapImprovementModBase.EditEnums.Move:
                     MapImprovementModBase.mls.LogInfo($"Moved {find.name} {(global ? $"globally" : $"locally")}");
-                    if (global) find.transform.position = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                    else find.transform.localPosition = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
+                    if (global) find.transform.position = edit.Postion;
+                    else find.transform.localPosition = edit.Postion;
                     return 0;
                 case MapImprovementModBase.EditEnums.Rotate:
                     MapImprovementModBase.mls.LogInfo($"Rotated {find.name} {(global ? $"globally" : $"locally")}");
-                    if (global) find.transform.eulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
-                    else find.transform.localEulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
+                    if (global) find.transform.eulerAngles = edit.Rotation;
+                    else find.transform.localEulerAngles = edit.Rotation;
                     return 0;
                 case MapImprovementModBase.EditEnums.Scale:
                     MapImprovementModBase.mls.LogInfo($"Scaled {find.name} {(global ? $"globally" : $"locally")}");
-                    if (global) SetGlobalScale(find, MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale);
-                    else find.transform.localScale = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale;
+                    if (global) SetGlobalScale(find, edit.Scale);
+                    else find.transform.localScale = edit.Scale;
                     return 0;
                 case MapImprovementModBase.EditEnums.AllTransforms:
                     MapImprovementModBase.mls.LogInfo($"Transformed {find.name} {(global ? $"globally" : $"locally")}");
                     if (global) {
-                        find.transform.position = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                        find.transform.eulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
-                        if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale == default) return 0;
-                        SetGlobalScale(find, MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale);
+                        find.transform.position = edit.Postion;
+                        find.transform.eulerAngles = edit.Rotation;
+                        if (edit.Scale == default) return 0;
+                        SetGlobalScale(find, edit.Scale);
                     } else {
-                        find.transform.localPosition = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                        find.transform.localEulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
-                        if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale == default) return 0;
-                        find.transform.localScale = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale;
+                        find.transform.localPosition = edit.Postion;
+                        find.transform.localEulerAngles = edit.Rotation;
+                        if (edit.Scale == default) return 0;
+                        find.transform.localScale = edit.Scale;
                     }
                     return 0;
                 case MapImprovementModBase.EditEnums.Destroy:
@@ -311,34 +291,36 @@ namespace MapImprovements.Patches
                     GameObject.Destroy(find);
                     return 0;
                 case MapImprovementModBase.EditEnums.FireExit:
-                    MapImprovementModBase.mls.LogInfo($"New Fire Exit #{MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex + fireOffset}");
+                    MapImprovementModBase.mls.LogInfo($"New Fire Exit #{edit.FireExitIndex + fireOffset}");
                     GameObject fire = GameObject.Instantiate(find, find.transform.parent);
-                    fire.name = "EntranceTeleport" + (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex + fireOffset);
+                    fire.name = "EntranceTeleport" + (edit.FireExitIndex + fireOffset);
                     if (global) {
-                        fire.transform.position = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                        fire.transform.eulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
+                        fire.transform.position = edit.Postion;
+                        fire.transform.eulerAngles = edit.Rotation;
                     } else {
-                        fire.transform.localPosition = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                        fire.transform.localEulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
+                        fire.transform.localPosition = edit.Postion;
+                        fire.transform.localEulerAngles = edit.Rotation;
                     }
                     if (fire.TryGetComponent<EntranceTeleport>(out EntranceTeleport script)) {
                         MapImprovementModBase.mls.LogInfo($"Added new entrance {(global ? $"globally" : $"locally")}");
-                        script.entranceId = (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex + fireOffset);
+                        script.entranceId = (edit.FireExitIndex + fireOffset);
                         return 1;
-                    } else return 0;
+                    }
+                    else return 0;
                 case MapImprovementModBase.EditEnums.Clone:
-                    MapImprovementModBase.mls.LogInfo($"Cloned {find.name} {(global ? $"globally" : $"locally")}");
                     GameObject clone = GameObject.Instantiate(find, find.transform.parent);
+                    if (edit.FireExitIndex != 0) clone.name = $"{clone.name} {edit.FireExitIndex}";
+                    MapImprovementModBase.mls.LogInfo($"Cloned {find.name} as {clone.name} {(global ? $"globally" : $"locally")}");
                     if (global) {
-                        clone.transform.position = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                        clone.transform.eulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
-                        if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale == default) return 0;
-                        SetGlobalScale(clone, MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale);
+                        clone.transform.position = edit.Postion;
+                        clone.transform.eulerAngles = edit.Rotation;
+                        if (edit.Scale == default) return 0;
+                        SetGlobalScale(clone, edit.Scale);
                     } else {
-                        clone.transform.localPosition = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Postion;
-                        clone.transform.localEulerAngles = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Rotation;
-                        if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale == default) return 0;
-                        clone.transform.localScale = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Scale;
+                        clone.transform.localPosition = edit.Postion;
+                        clone.transform.localEulerAngles = edit.Rotation;
+                        if (edit.Scale == default) return 0;
+                        clone.transform.localScale = edit.Scale;
                     }
                     return 0;
                 case MapImprovementModBase.EditEnums.Enable:
@@ -365,7 +347,7 @@ namespace MapImprovements.Patches
                     }
                     return 0;
                 case MapImprovementModBase.EditEnums.Reverb:
-                    int dex = MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].FireExitIndex;
+                    int dex = edit.FireExitIndex;
                     if (find.TryGetComponent<AudioReverbTrigger>(out AudioReverbTrigger change)) {
                         MapImprovementModBase.mls.LogInfo($"Adding reverb {MapImprovementModBase.ReverbNames[dex]} to {find.name}");
                         change.reverbPreset = MapImprovementModBase.Instance.reverbAssets[dex];
@@ -384,17 +366,27 @@ namespace MapImprovements.Patches
                     MapImprovementModBase.mls.LogInfo($"Breakable bridge {find.name}");
                     return 0;
                 case MapImprovementModBase.EditEnums.HasTrees:
-                    MapImprovementModBase.mls.LogInfo($"Adding script to all {MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name} without one...");
-                    GameObject[] trees = GameObject.FindGameObjectsWithTag(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Tag);
+                    MapImprovementModBase.mls.LogInfo($"Adding script to all {edit.Name} without one...");
+                    GameObject[] trees = GameObject.FindGameObjectsWithTag(edit.Tag);
                     for (int t = 0; t < trees.Length; t++) {
-                        if (trees[t].name.ToLower().Equals((MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Name).ToLower())) {
+                        if (trees[t].name.ToLower().Equals((edit.Name).ToLower())) {
                             if (!trees[t].TryGetComponent<Collider>(out _)) continue;
                             if (!trees[t].TryGetComponent<TerrainObstacleTrigger>(out _)) trees[t].AddComponent<TerrainObstacleTrigger>();
                         }
                     }
                     return 0;
+                case MapImprovementModBase.EditEnums.IfFound:
+                    //Never needed unless someone is dumb
+                    return 0;
+                case MapImprovementModBase.EditEnums.Hazards:
+                    MapImprovementModBase.mls.LogInfo($"Adding hazards to {find.name}");
+                    if (!find.TryGetComponent<RandomMapObject>(out _)) {
+                        RandomMapObject rmo = find.AddComponent<RandomMapObject>();
+                        if (edit.FireExitIndex > 0) rmo.spawnRange = edit.FireExitIndex;
+                    }
+                    return 0;
                 default:
-                    MapImprovementModBase.mls.LogError($"Error regarding Edit Enum: Enum set to {MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Edit[i].Do}");
+                    MapImprovementModBase.mls.LogError($"Error regarding Edit Enum: Enum set to {edit.Do}");
                     return 0;
             }
         }
@@ -406,10 +398,52 @@ namespace MapImprovements.Patches
             find.transform.localScale = new Vector3(scale.x / find.transform.lossyScale.x, scale.y / find.transform.lossyScale.y, scale.z / find.transform.lossyScale.z);
         }
 
-        static IEnumerator DelayedAction(GameObject obj, int moon, int index, int i, int offset)
+        //Get moon index
+        static int GetMoonIndex(string nameLevel)
         {
-            yield return new WaitForSeconds(0.2f);
-            ApplyEnum(obj, moon, index, i, offset);
+            //Check for planet name
+            string[] level = nameLevel.Split(new[] { "level" }, System.StringSplitOptions.RemoveEmptyEntries);
+            switch (level[0]) {
+                case "experimentation":
+                    return 0;
+                case "assurance":
+                    return 1;
+                case "vow":
+                    return 2;
+                case "offense":
+                    return 3;
+                case "march":
+                    return 4;
+                case "adamance":
+                    return 5;
+                case "rend":
+                    return 6;
+                case "dine":
+                    return 7;
+                case "titan":
+                    return 8;
+                case "artifice":
+                    return 9;
+                case "embrion":
+                    return 10;
+                case "companybuilding":
+                    return 11;
+                default:
+                    return MapImprovementModBase.Instance.Moons.FindIndex(x => x.Planet.ToLower().Equals(level[0]));
+            }
+        }
+
+        //Find random map object spawners and add the
+        static void OutsideHazards(SelectableLevel level)
+        {
+            RandomMapObject[] array = UnityEngine.Object.FindObjectsOfType<RandomMapObject>();
+            for (int i = 0; i < level.spawnableMapObjects.Length; i++) {
+                for (int j = 0; j < array.Length; j++) {
+                    if (!array[j].spawnablePrefabs.Contains(level.spawnableMapObjects[i].prefabToSpawn)) {
+                        array[j].spawnablePrefabs.Add(level.spawnableMapObjects[i].prefabToSpawn);
+                    }
+                }
+            }
         }
     }
 }

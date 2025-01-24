@@ -18,7 +18,7 @@ namespace CustomOutsideObjects
         //Mod declaration
         public const string modGUID = "CustomOutsideObjects";
         private const string modName = "CustomOutsideObjects";
-        private const string modVersion = "1.2.0";
+        private const string modVersion = "1.3.0";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -30,19 +30,8 @@ namespace CustomOutsideObjects
         internal static string[] foundOutsideAssetFiles;
         internal static AssetBundle currentAsset;
         internal static SpawnableOutsideObjectDef[] currentAssetObjects;
-        internal static List<SpawnableOutsideObjectWithRarity> loadedInjectableOutsideObjects = new List<SpawnableOutsideObjectWithRarity>();
-        internal static List<string> customMoonList = new List<string>();
-
-        //Tag search terms
-        internal static readonly string[] tags = new string[] {
-            "Gravel",
-            "Grass",
-            "Snow",
-            "Rock",
-            "Concrete",
-            "Catwalk",
-            "Wood"
-        };
+        internal List<SpawnableOutsideObjectWithRarity> loadedInjectableOutsideObjects = new List<SpawnableOutsideObjectWithRarity>();
+        internal List<string> customMoonList = new List<string>();
 
         void Awake()
         {
@@ -153,6 +142,8 @@ namespace CustomOutsideObjects
                                 }
                             }
                         }
+                        //Catch Oolbterra Illscene
+                        if (files[k].Equals("illscene")) customMoonList.Add("Ooblterra");
                     }
                     break;
                 }
