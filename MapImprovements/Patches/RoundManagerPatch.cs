@@ -1,14 +1,17 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 using Unity.AI.Navigation;
+using UnityEngine.SceneManagement;
 using static MapImprovements.MapImprovementModBase;
-using System;
 
 namespace MapImprovements.Patches
 {
     [HarmonyPatch(typeof(RoundManager))]
     internal class RoundManagerPatch
     {
+        private static bool ReExpScene = false;
+        private static bool ReDinScene = false;
+
         private static Material WaterMat;
         [HarmonyPatch("Start")]
         [HarmonyPostfix]
@@ -21,7 +24,6 @@ namespace MapImprovements.Patches
         [HarmonyPostfix]
         static void FixChameleonDoors(RoundManager __instance) {
             if (!MapImprovementModBase.Instance.Chameleon || !ConfigControl.Instance.ModEnabled) return;
-            //TESTING
             GameObject Chameleon = GameObject.Find("WideDoorFrame(Clone)");
             if (Chameleon != null) {
                 int id = GetMoonIndex(__instance.currentLevel.name.ToLower().Trim());
@@ -32,7 +34,7 @@ namespace MapImprovements.Patches
                         return;
                     case 7:
                         if (GameObject.Find("Dine A(Clone)")) {
-                            ApplyEnum(Chameleon, new Edits("", "", EditEnums.AllTransforms, new Vector3(-122.04f, -15.25f, -6.9f), new Vector3(-90, 180, -89.2f), G: true), 0);
+                            ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(-122.04f, -15.25f, -6.9f), new Vector3(-90, 180, -89.2f), G: true), 0);
                             MapImprovementModBase.mls.LogInfo("Moved main door.");
                         }
                         return;
@@ -40,7 +42,6 @@ namespace MapImprovements.Patches
                         return;
                 }
             }
-            //GameObject DoorA = GameObject.Find("WideDoorFrame(Clone)/DoorMeshFake");
         }
 
         [HarmonyPatch("SetChallengeFileRandomModifiers")]
@@ -59,8 +60,43 @@ namespace MapImprovements.Patches
             if (MapImprovementModBase.Instance.Moons[moon].Adjustments == null || MapImprovementModBase.Instance.Moons[moon].Adjustments.Count < 1) return;
             if (!ConfigControl.Instance.cfgMoons[moon].Enabled) return;
 
+            //Rebalanced scene check
+            if (MapImprovementModBase.Instance.Rebalanced) {
+                if (SceneManager.GetSceneByName("ReExperimentationScene").IsValid()) {
+                    MapImprovementModBase.mls.LogWarning("Rebalanced Experiementation detected! Cull!");
+                    ReExpScene = true;
+                }
+                if (SceneManager.GetSceneByName("ReDineScene").IsValid()) {
+                    MapImprovementModBase.mls.LogWarning("Rebalanced Dine detected! Don't kill!");
+                    ReDinScene = true;
+                }
+            }
+
             //Apply mod
             Mod(moon, __instance.playersManager.randomMapSeed, container);
+
+            //Compats
+            switch (moon) {
+                case 0:
+                    if (ReExpScene) {
+                        FindObject(new Edits("InsideNodes", "Untagged", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/ScanNodes/ScanNode", "Untagged", EditEnums.Move, new Vector3(-95, 0, 0)));
+                        FindObject(new Edits("EntranceTeleportA", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-96.35f, -3.12f, -1.15f), S: new Vector3(0.33f, 3.27f, 3.4f)));
+                        FindObject(new Edits("EntranceTeleport2", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-195.4f, 19, -31.25f), Vector3.zero));
+                    } else {
+                        FindObject(new Edits("SteelDoor (5)", "Untagged", EditEnums.Destroy));
+                        FindObject(new Edits("SteelDoor (6)", "Untagged", EditEnums.Destroy));
+                    }
+                    break;
+                case 7:
+                    if (!ReDinScene && !MapImprovementModBase.Instance.TonightWeDine) {
+                        FindObject(new Edits("Dine A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("NeonLightsSingle", "PoweredLight", EditEnums.Destroy)));
+                        FindObject(new Edits("Dine A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
+                    }
+                    break;
+                default:
+                    break;
+            }
 
             //Trying out outside hazards :)
             OutsideHazards(__instance.currentLevel);
@@ -131,7 +167,7 @@ namespace MapImprovements.Patches
                     for (int i = 0; i < MapImprovementModBase.Instance.Moons[moon].Adjustments.Count; i++) {
                         if (index != i) {
                             if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) continue;
-                            if (Fifty_Fifty(moon, (int)(randomSeed * 5 / 3.0f), i)) ApplyObject(moon, i, container.transform, fireOffset);
+                            if (Fifty_Fifty(moon, (int)(randomSeed * 5 / (2.0f + i)), i)) ApplyObject(moon, i, container.transform, fireOffset);
                         }
                     }
                     break;

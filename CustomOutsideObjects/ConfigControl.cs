@@ -45,12 +45,14 @@ namespace CustomOutsideObjects
             InitInstance(this);
             //Custom moon checking enabled
             string names = "Base game:\nExperimentation, Assurance, Vow, Offense, March, Adamance, Rend, Dine, Titan, Embrion, Artifice";
+            /*
             if (CustomOutsideModBase.Instance.customMoonList != null || CustomOutsideModBase.Instance.customMoonList.Count > 0) {
                 CustomOutsideModBase.mls.LogInfo($"Added custom moons to configs.");
                 names += "\n\nFound custom moons:\n";
                 for (int i = 0; i < CustomOutsideModBase.Instance.customMoonList.Count - 1; i++) names += CustomOutsideModBase.Instance.customMoonList[i] + ", ";
                 names += CustomOutsideModBase.Instance.customMoonList[CustomOutsideModBase.Instance.customMoonList.Count - 1];
             }
+            */
             _ = cfg.Bind("-Valid Options", "Valid Moon Names", "", names);
             _ = cfg.Bind("-Valid Options", "Valid Tag Names", "", "Common tags:\nGravel, Grass, Snow, Rock, Concrete, Catwalk, Wood\n\nOther valid tags:\nUntagged, Metal, Carpet, Puddle, Aluminum");
             objects = new ObjectConfig[CustomOutsideModBase.Instance.loadedInjectableOutsideObjects.Count];

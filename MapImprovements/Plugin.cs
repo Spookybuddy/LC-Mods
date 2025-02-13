@@ -15,7 +15,7 @@ namespace MapImprovements
         //Mod declaration
         public const string modGUID = "MapImprovements";
         private const string modName = "MapImprovements";
-        private const string modVersion = "0.9.4";
+        private const string modVersion = "0.9.5";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -30,8 +30,9 @@ namespace MapImprovements
         internal static TextAsset[] currentInstructions;
         internal ReverbPreset[] reverbAssets;
         internal static readonly string[] ReverbNames = new string[] { "Alley", "BigCanyon", "Cave", "ConcreteTunnel", "Elevator", "LargeRoom", "NoReverb", "Outside1", "OutsideForest", "OutsideSnow", "SmallRoom" };
-        private static bool Rebalanced;
-        internal bool Chameleon;
+        internal bool Rebalanced = false;
+        internal bool Chameleon = false;
+        internal bool TonightWeDine = false;
 
         //Internal moon vars
         internal List<Collection> Moons = new List<Collection>() {
@@ -205,7 +206,6 @@ namespace MapImprovements
                                 string configDescrip = "";
                                 ConfigControl.Setting configDefault = ConfigControl.Setting.Enabled;
                                 //Find the index/exists of each moon and add to that item
-                                //ADD IN FORCED NAV REBAKE TO COVER FOR WHEN NO HAZARDS SPAWN
                                 switch (parse[0]) {
                                     case "experimentation":
                                         index = 0;
@@ -237,7 +237,7 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("OutsideNode (26)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (33)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (34)", "OutsideAINode", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("ItemShipAnimContainer", "Untagged", EditEnums.Move, new Vector3(63, 30.5f, 2.8f)));
+                                            adjustments.Add(new Edits("ItemShipAnimContainer", "Untagged", EditEnums.Move, new Vector3(53.5f, 4.7f, -93)));
                                             adjustments.Add(new Edits("OverlapColliders", "Concrete", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OverlapColliders (1)", "Concrete", EditEnums.Destroy));
                                             //Enable nodes
@@ -245,16 +245,8 @@ namespace MapImprovements
                                             configDefault = ConfigControl.Setting.RandomAll;
                                             configDescrip = "Creates a pathway for the cruiser, as well as enemies.";
                                         } else {
-                                            adjustments.Add(new Edits("Ladder", "Untagged", EditEnums.Clone, new Vector3(-50.25f, -9.5f, 45.45f), new Vector3(-180, -100, 180), new Vector3(0.58f, 0.78f, 0.58f)));
                                             adjustments.Add(new Edits("TreeALOD0", "Untagged", EditEnums.Clone, new Vector3(125, 5, 72), new Vector3(-80, 191, -83)));
-                                            //Rebalanced cancels this out
-                                            if (Rebalanced) {
-                                                adjustments.Add(new Edits("Experimentation A(Clone)", "Untagged", EditEnums.Destroy));
-                                                break;
-                                            }
                                             adjustments.Add(new Edits("BigMachine", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("SteelDoor (5)", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("SteelDoor (6)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("Environment/ReverbTriggers (1)/Cube (2)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Clone, new Vector3(-205.1f, 19.765f, -13.195f), new Vector3(270, 0, 90))); // (1)
                                             adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Clone, new Vector3(-194.666f, 19.75f, -30.85f), new Vector3(270, 0, 90))); // (2)
@@ -283,6 +275,7 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("SteelDoor(Clone) 13/DoorFrame", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("SteelDoor(Clone) 18/DoorFrame", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("SteelDoor(Clone) 19/DoorFrame", "Untagged", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Destroy));
                                             //Reverbs, lights, decoration, navmesh, nodes, spawn blockers, catwalks
                                             adjustments.Add(new Edits("TriggerLarge", "Grass", EditEnums.Reverb, F: 5));
                                             adjustments.Add(new Edits("TriggerHall", "Grass", EditEnums.Reverb, F: 6));
@@ -395,11 +388,21 @@ namespace MapImprovements
                                     case "offense":
                                         index = 3;
                                         if (parse[1].Equals("b")) {
-
+                                            adjustments.Add(new Edits("rock.011 (1)", "Rock", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("Environment/BoundsWalls/Cube (1)", "Untagged", EditEnums.Rotate, R: new Vector3(0, -14, 0)));
+                                            adjustments.Add(new Edits("Environment/Map/Ladder1.5x", "Untagged", EditEnums.Clone, new Vector3(-11.7f, -10.5f, -120.85f), new Vector3(-180, -163, 180), new Vector3(0.58f, 1.05f, 0.58f)));
+                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(-7.2f, 6.3f, -122.44f), new Vector3(0, 106, 0), F: 2));
+                                            configDefault = ConfigControl.Setting.RandomAll;
+                                            configDescrip = "Expands the map behind the Facility with a new Fire Exit.";
                                         } else if (parse[1].Equals("c")) {
-
+                                            adjustments.Add(new Edits("TrainCarTank", "Aluminum", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("Environment/ReverbTriggers (1)/Cube (3)", "Untagged", EditEnums.Destroy));
+                                            configDefault = ConfigControl.Setting.RandomAll;
+                                            configDescrip = "Adds more decor & parkour to the Fire Exit. Fixes navigation areas for Giants.";
                                         } else {
-
+                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(8.2f, 8.4f, 75.3f), new Vector3(0, 82, 0), F: 2));
+                                            configDefault = ConfigControl.Setting.Enabled;
+                                            configDescrip = "Adds in more to far side of the map and a new Fire Exit.";
                                         }
                                         break;
                                     case "march":
@@ -484,23 +487,17 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("ExitReverb", "Untagged", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("ExitReverb (1)", "Untagged", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
+                                            configDefault = ConfigControl.Setting.Always;
+                                            configDescrip = "Adds in fences around the edges, with holes to allow for escaping Giants. Adjusts the main entrance area to prevent Giants loitering.";
                                             //TonightWeDine compatability
-                                            bool Dining = false;
                                             files = Directory.GetFiles(location, "TonightWeDine.dll", SearchOption.AllDirectories);
                                             if (files.Length > 0 && files != null) {
                                                 files = Directory.GetFiles(location, "tonightwedine", SearchOption.AllDirectories);
                                                 if (files.Length > 0 && files != null) {
                                                     mls.LogWarning($"Tonight we Dine! Modifying Dine!");
-                                                    Dining = true;
+                                                    TonightWeDine = true;
                                                 }
                                             }
-                                            //Dont destroy on Rebalanced
-                                            if (!Rebalanced && !Dining) {
-                                                adjustments.Add(new Edits("NeonLightsSingle", "PoweredLight", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("Cube.002", "Concrete", EditEnums.Destroy));
-                                            }
-                                            configDefault = ConfigControl.Setting.Always;
-                                            configDescrip = "Adds in fences around the edges, with holes to allow for escaping Giants. Adjusts the main entrance area to prevent Giants loitering.";
                                         }
                                         break;
                                     case "titan":
