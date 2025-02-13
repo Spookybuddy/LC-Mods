@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using LethalLib.Extras;
-using LethalLevelLoader;
+//using LethalLevelLoader;
 
 namespace CustomOutsideObjects
 {
     [BepInPlugin(modGUID, modName, modVersion)]
     [BepInDependency(LethalLib.Plugin.ModGUID)]
-    [BepInDependency(LethalLevelLoader.Plugin.ModGUID)]
+    //[BepInDependency(LethalLevelLoader.Plugin.ModGUID)]
     public class CustomOutsideModBase : BaseUnityPlugin
     {
         //Mod declaration
@@ -31,7 +31,7 @@ namespace CustomOutsideObjects
         internal static AssetBundle currentAsset;
         internal static SpawnableOutsideObjectDef[] currentAssetObjects;
         internal List<SpawnableOutsideObjectWithRarity> loadedInjectableOutsideObjects = new List<SpawnableOutsideObjectWithRarity>();
-        internal List<string> customMoonList = new List<string>();
+        //internal List<string> customMoonList = new List<string>();
 
         void Awake()
         {
@@ -95,7 +95,7 @@ namespace CustomOutsideObjects
                 mls.LogWarning($"No Custom Outside Objects were added.");
                 return;
             }
-
+            /*
             //Find all custom moons by locating the parent plugins folder. All .lethalbundle files are found, and if there is X & X()scene(s), add that as custom moon
             location = Path.GetDirectoryName(Info.Location).ToString();
             files = location.Split('\\');
@@ -149,7 +149,7 @@ namespace CustomOutsideObjects
                 }
             }
             for (int i = 0; i < customMoonList.Count; i++) mls.LogInfo($"Found custom moon {customMoonList[i]}.");
-
+            */
             //Generate config file for all objects found
             Configuration = new ConfigControl(Config);
             mls.LogInfo($"Generated Config file for all loaded objects.");
