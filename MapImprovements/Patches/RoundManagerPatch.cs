@@ -11,6 +11,7 @@ namespace MapImprovements.Patches
     {
         private static bool ReExpScene = false;
         private static bool ReDinScene = false;
+        private static bool ReEmbScene = false;
 
         private static Material WaterMat;
         [HarmonyPatch("Start")]
@@ -35,6 +36,12 @@ namespace MapImprovements.Patches
                     case 7:
                         if (GameObject.Find("Dine A(Clone)")) {
                             ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(-122.04f, -15.25f, -6.9f), new Vector3(-90, 180, -89.2f), G: true), 0);
+                            MapImprovementModBase.mls.LogInfo("Moved main door.");
+                        }
+                        return;
+                    case 10:
+                        if (GameObject.Find("Embrion A(Clone)")) {
+                            ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(235.6f, 1.5f, -7.15f)), 0);
                             MapImprovementModBase.mls.LogInfo("Moved main door.");
                         }
                         return;
@@ -70,6 +77,10 @@ namespace MapImprovements.Patches
                     MapImprovementModBase.mls.LogWarning("Rebalanced Dine detected! Don't kill!");
                     ReDinScene = true;
                 }
+                if (SceneManager.GetSceneByName("ReEmbrionScene").IsValid()) {
+                    MapImprovementModBase.mls.LogWarning("Rebalanced Embrion detected! Remove Colliders!");
+                    ReEmbScene = true;
+                }
             }
 
             //Apply mod
@@ -84,14 +95,20 @@ namespace MapImprovements.Patches
                         FindObject(new Edits("EntranceTeleportA", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-96.35f, -3.12f, -1.15f), S: new Vector3(0.33f, 3.27f, 3.4f)));
                         FindObject(new Edits("EntranceTeleport2", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-195.4f, 19, -31.25f), Vector3.zero));
                     } else {
-                        FindObject(new Edits("SteelDoor (5)", "Untagged", EditEnums.Destroy));
-                        FindObject(new Edits("SteelDoor (6)", "Untagged", EditEnums.Destroy));
+                        FindObject(new Edits("Experimentation_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("SteelDoor (5)", "Untagged", EditEnums.Destroy)));
+                        FindObject(new Edits("Experimentation_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("SteelDoor (6)", "Untagged", EditEnums.Destroy)));
                     }
                     break;
                 case 7:
                     if (!ReDinScene && !MapImprovementModBase.Instance.TonightWeDine) {
-                        FindObject(new Edits("Dine A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("NeonLightsSingle", "PoweredLight", EditEnums.Destroy)));
-                        FindObject(new Edits("Dine A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
+                        FindObject(new Edits("Dine_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("NeonLightsSingle", "PoweredLight", EditEnums.Destroy)));
+                        FindObject(new Edits("Dine_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
+                    }
+                    break;
+                case 10:
+                    if (ReEmbScene) {
+                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("TerrainFix", "Rock", EditEnums.Destroy)));
+                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("TerrainFix (1)", "Rock", EditEnums.Destroy)));
                     }
                     break;
                 default:
@@ -395,12 +412,6 @@ namespace MapImprovements.Patches
                         add.audioChanges = new switchToAudio[0];
                     }
                     return 0;
-                case MapImprovementModBase.EditEnums.StoryLog:
-                    MapImprovementModBase.mls.LogInfo($"New story log {find.name}");
-                    return 0;
-                case MapImprovementModBase.EditEnums.Bridge:
-                    MapImprovementModBase.mls.LogInfo($"Breakable bridge {find.name}");
-                    return 0;
                 case MapImprovementModBase.EditEnums.HasTrees:
                     MapImprovementModBase.mls.LogInfo($"Adding script to all {edit.Name} without one...");
                     GameObject[] trees = GameObject.FindGameObjectsWithTag(edit.Tag);
@@ -413,6 +424,7 @@ namespace MapImprovements.Patches
                     return 0;
                 case MapImprovementModBase.EditEnums.IfFound:
                     //Never needed unless someone is dumb
+                    MapImprovementModBase.mls.LogWarning($"What are you trying to do here?");
                     return 0;
                 case MapImprovementModBase.EditEnums.Hazards:
                     MapImprovementModBase.mls.LogInfo($"Adding hazards to {find.name}");
@@ -420,6 +432,12 @@ namespace MapImprovements.Patches
                         RandomMapObject rmo = find.AddComponent<RandomMapObject>();
                         if (edit.FireExitIndex > 0) rmo.spawnRange = edit.FireExitIndex;
                     }
+                    return 0;
+                case MapImprovementModBase.EditEnums.KillTrigger:
+                    MapImprovementModBase.mls.LogInfo($"Adding kill trigger to {find.name}");
+                    KillLocalPlayer killer = find.AddComponent<KillLocalPlayer>();
+                    InteractTrigger interact = find.AddComponent<InteractTrigger>();
+                    //interact.onInteract.AddListener(killer.KillPlayer);
                     return 0;
                 default:
                     MapImprovementModBase.mls.LogError($"Error regarding Edit Enum: Enum set to {edit.Do}");
