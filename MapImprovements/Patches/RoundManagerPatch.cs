@@ -12,6 +12,7 @@ namespace MapImprovements.Patches
         private static bool ReExpScene = false;
         private static bool ReDinScene = false;
         private static bool ReEmbScene = false;
+        private static bool ReArtScene = false;
 
         private static Material WaterMat;
         [HarmonyPatch("Start")]
@@ -31,16 +32,16 @@ namespace MapImprovements.Patches
                 if (id < 0) return;
                 switch (id) {
                     case 0:
-                        if (GameObject.Find("Experimentation A(Clone)")) GameObject.Destroy(Chameleon);
+                        if (GameObject.Find("Experimentation_A(Clone)")) GameObject.Destroy(Chameleon);
                         return;
                     case 7:
-                        if (GameObject.Find("Dine A(Clone)")) {
+                        if (GameObject.Find("Dine_A(Clone)")) {
                             ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(-122.04f, -15.25f, -6.9f), new Vector3(-90, 180, -89.2f), G: true), 0);
                             MapImprovementModBase.mls.LogInfo("Moved main door.");
                         }
                         return;
                     case 10:
-                        if (GameObject.Find("Embrion A(Clone)")) {
+                        if (GameObject.Find("Embrion_A(Clone)")) {
                             ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(235.6f, 1.5f, -7.15f)), 0);
                             MapImprovementModBase.mls.LogInfo("Moved main door.");
                         }
@@ -68,18 +69,32 @@ namespace MapImprovements.Patches
             if (!ConfigControl.Instance.cfgMoons[moon].Enabled) return;
 
             //Rebalanced scene check
-            if (MapImprovementModBase.Instance.Rebalanced) {
-                if (SceneManager.GetSceneByName("ReExperimentationScene").IsValid()) {
-                    MapImprovementModBase.mls.LogWarning("Rebalanced Experiementation detected! Cull!");
-                    ReExpScene = true;
-                }
-                if (SceneManager.GetSceneByName("ReDineScene").IsValid()) {
-                    MapImprovementModBase.mls.LogWarning("Rebalanced Dine detected! Don't kill!");
-                    ReDinScene = true;
-                }
-                if (SceneManager.GetSceneByName("ReEmbrionScene").IsValid()) {
-                    MapImprovementModBase.mls.LogWarning("Rebalanced Embrion detected! Remove Colliders!");
-                    ReEmbScene = true;
+            if (MapImprovementModBase.Instance.Rebalanced)
+            {
+                foreach (string sceneName in new[] { "ReExperimentationScene", "ReDineScene", "ReEmbrionScene" })
+                {
+                    if (SceneManager.GetSceneByName(sceneName).IsValid())
+                    {
+                        switch (sceneName)
+                        {
+                            case "ReExperimentationScene":
+                                MapImprovementModBase.mls.LogWarning("Rebalanced Experimentation detected! Cull!");
+                                ReExpScene = true;
+                                break;
+                            case "ReDineScene":
+                                MapImprovementModBase.mls.LogWarning("Rebalanced Dine detected! Don't kill!");
+                                ReDinScene = true;
+                                break;
+                            case "ReEmbrionScene":
+                                MapImprovementModBase.mls.LogWarning("Rebalanced Embrion detected! Remove Colliders!");
+                                ReEmbScene = true;
+                                break;
+                            case "ReArtificeScene":
+                                MapImprovementModBase.mls.LogWarning("Rebalanced Artifice detected! Cull!");
+                                ReArtScene = true;
+                                break;
+                        }
+                    }
                 }
             }
 
@@ -103,6 +118,11 @@ namespace MapImprovements.Patches
                     if (!ReDinScene && !MapImprovementModBase.Instance.TonightWeDine) {
                         FindObject(new Edits("Dine_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("NeonLightsSingle", "PoweredLight", EditEnums.Destroy)));
                         FindObject(new Edits("Dine_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
+                    }
+                    break;
+                case 9:
+                    if (ReArtScene) {
+                        FindObject(new Edits("Artifice_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube (5)", "Concrete", EditEnums.Destroy)));
                     }
                     break;
                 case 10:
