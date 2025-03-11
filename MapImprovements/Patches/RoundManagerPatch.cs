@@ -109,6 +109,8 @@ namespace MapImprovements.Patches
                     if (ReEmbScene) {
                         FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("TerrainFix", "Rock", EditEnums.Destroy)));
                         FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("TerrainFix (1)", "Rock", EditEnums.Destroy)));
+                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube (1)", "Concrete", EditEnums.Destroy)));
+                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube (2)", "Concrete", EditEnums.Destroy)));
                     }
                     break;
                 default:
