@@ -31,16 +31,16 @@ namespace MapImprovements.Patches
                 if (id < 0) return;
                 switch (id) {
                     case 0:
-                        if (GameObject.Find("Experimentation A(Clone)")) GameObject.Destroy(Chameleon);
+                        if (GameObject.Find("Experimentation_A(Clone)")) GameObject.Destroy(Chameleon);
                         return;
                     case 7:
-                        if (GameObject.Find("Dine A(Clone)")) {
+                        if (GameObject.Find("Dine_A(Clone)")) {
                             ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(-122.04f, -15.25f, -6.9f), new Vector3(-90, 180, -89.2f), G: true), 0);
                             MapImprovementModBase.mls.LogInfo("Moved main door.");
                         }
                         return;
                     case 10:
-                        if (GameObject.Find("Embrion A(Clone)")) {
+                        if (GameObject.Find("Embrion_A(Clone)")) {
                             ApplyEnum(Chameleon, new MapImprovementModBase.Edits("", "", MapImprovementModBase.EditEnums.AllTransforms, new Vector3(235.6f, 1.5f, -7.15f)), 0);
                             MapImprovementModBase.mls.LogInfo("Moved main door.");
                         }
