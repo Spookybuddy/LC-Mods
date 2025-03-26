@@ -10,17 +10,12 @@ namespace MapImprovements.Patches
     internal class RoundManagerPatch
     {
         private static bool ReExpScene = false;
+        private static bool ReVowScene = false;
+        private static bool ReOffScene = false;
+        private static bool ReAdaScene = false;
         private static bool ReDinScene = false;
         private static bool ReEmbScene = false;
         private static bool ReArtScene = false;
-
-        private static Material WaterMat;
-        [HarmonyPatch("Start")]
-        [HarmonyPostfix]
-        static void GetWaterMat()
-        {
-            WaterMat = GameObject.Find("TimeAndWeather").transform.GetChild(4).GetChild(1).GetComponent<MeshRenderer>().material;
-        }
 
         [HarmonyPatch("FinishGeneratingNewLevelClientRpc")]
         [HarmonyPostfix]
@@ -69,28 +64,36 @@ namespace MapImprovements.Patches
             if (!ConfigControl.Instance.cfgMoons[moon].Enabled) return;
 
             //Rebalanced scene check
-            if (MapImprovementModBase.Instance.Rebalanced)
-            {
-                foreach (string sceneName in new[] { "ReExperimentationScene", "ReDineScene", "ReEmbrionScene" })
-                {
-                    if (SceneManager.GetSceneByName(sceneName).IsValid())
-                    {
-                        switch (sceneName)
-                        {
+            if (MapImprovementModBase.Instance.Rebalanced) {
+                foreach (string sceneName in new[] { "ReExperimentationScene", "ReVowScene", "ReOffenseScene", "ReAdamanceScene", "ReDineScene", "ReEmbrionScene", "ReArtificeScene" }) {
+                    if (SceneManager.GetSceneByName(sceneName).IsValid()) {
+                        switch (sceneName) {
                             case "ReExperimentationScene":
-                                MapImprovementModBase.mls.LogWarning("Rebalanced Experimentation detected! Cull!");
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Experimentation detected! Cull!");
                                 ReExpScene = true;
                                 break;
+                            case "ReVowScene":
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Vow detected! Navigate!");
+                                ReVowScene = true;
+                                break;
+                            case "ReOffenseScene":
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Offense detected! Orange!");
+                                ReOffScene = true;
+                                break;
+                            case "ReAdamanceScene":
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Adamance detected! Trees!");
+                                ReAdaScene = true;
+                                break;
                             case "ReDineScene":
-                                MapImprovementModBase.mls.LogWarning("Rebalanced Dine detected! Don't kill!");
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Dine detected! Cement!");
                                 ReDinScene = true;
                                 break;
                             case "ReEmbrionScene":
-                                MapImprovementModBase.mls.LogWarning("Rebalanced Embrion detected! Remove Colliders!");
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Embrion detected! Terrain!");
                                 ReEmbScene = true;
                                 break;
                             case "ReArtificeScene":
-                                MapImprovementModBase.mls.LogWarning("Rebalanced Artifice detected! Cull!");
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Artifice detected! Cube!");
                                 ReArtScene = true;
                                 break;
                         }
@@ -105,32 +108,74 @@ namespace MapImprovements.Patches
             switch (moon) {
                 case 0:
                     if (ReExpScene) {
-                        FindObject(new Edits("InsideNodes", "Untagged", EditEnums.Destroy));
+                        FindObject(new Edits("NodeParent", "Snow", EditEnums.Destroy));
                         FindObject(new Edits("Environment/ScanNodes/ScanNode", "Untagged", EditEnums.Move, new Vector3(-95, 0, 0)));
                         FindObject(new Edits("EntranceTeleportA", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-96.35f, -3.12f, -1.15f), S: new Vector3(0.33f, 3.27f, 3.4f)));
                         FindObject(new Edits("EntranceTeleport2", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-195.4f, 19, -31.25f), Vector3.zero));
                     } else {
-                        FindObject(new Edits("Experimentation_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("SteelDoor (5)", "Untagged", EditEnums.Destroy)));
-                        FindObject(new Edits("Experimentation_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("SteelDoor (6)", "Untagged", EditEnums.Destroy)));
+                        FindObject(new Edits("PitA (2)", "Catwalk", EditEnums.IfFound, I: new Found("SteelDoor (5)", "Untagged", EditEnums.Destroy)));
+                        FindObject(new Edits("PitA (2)", "Catwalk", EditEnums.IfFound, I: new Found("SteelDoor (6)", "Untagged", EditEnums.Destroy)));
+                    }
+                    break;
+                case 2:
+                    if (ReVowScene) {
+                        FindObject(new Edits("Environment/BoundsWalls/Cube", "Snow", EditEnums.Move, new Vector3(701, 17, 555)));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (1)", "Snow", EditEnums.Move, new Vector3(-173, 7, 180)));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (4)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (5)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (6)", "Snow", EditEnums.Destroy));
+                    }
+                    break;
+                case 3:
+                    if (ReOffScene) {
+                        FindObject(new Edits("Unbalanced", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("UnbalancedB", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (10)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (12)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (13)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (14)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (15)", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("Environment/BoundsWalls/Cube (17)", "Snow", EditEnums.Destroy));
+                    } else {
+                        FindObject(new Edits("Offbalanced", "Snow", EditEnums.Destroy));
+                        FindObject(new Edits("OffbalancedB", "Snow", EditEnums.Destroy));
+                    }
+                    break;
+                case 5:
+                    if (ReAdaScene) {
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (4)", "Wood", EditEnums.Destroy)));
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (5)", "Wood", EditEnums.Destroy)));
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (7)", "Wood", EditEnums.Destroy)));
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (8)", "Wood", EditEnums.Destroy)));
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (9)", "Wood", EditEnums.Destroy)));
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (11)", "Wood", EditEnums.Destroy)));
+                        FindObject(new Edits("Buildings (12)", "Metal", EditEnums.IfFound, I: new Found("treeLeaflessBrown.001 Variant (12)", "Wood", EditEnums.Destroy)));
                     }
                     break;
                 case 7:
+                    if (ReDinScene) FindObject(new Edits("Environment/BoundsWalls/Cube (4)", "Grass", EditEnums.Destroy));
                     if (!ReDinScene && !MapImprovementModBase.Instance.TonightWeDine) {
-                        FindObject(new Edits("Dine_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("NeonLightsSingle", "PoweredLight", EditEnums.Destroy)));
-                        FindObject(new Edits("Dine_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
+                        FindObject(new Edits("InteriorReverb", "Grass", EditEnums.IfFound, I: new Found("NeonLightsSingle", "PoweredLight", EditEnums.Destroy)));
+                        FindObject(new Edits("InteriorReverb", "Grass", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
                     }
                     break;
                 case 9:
                     if (ReArtScene) {
-                        FindObject(new Edits("Artifice_A(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube (5)", "Concrete", EditEnums.Destroy)));
+                        FindObject(new Edits("Extention", "Concrete", EditEnums.Destroy));
+                        FindObject(new Edits("Unbalanced", "Concrete", EditEnums.Destroy));
+                    } else {
+                        FindObject(new Edits("Rebalanced", "Concrete", EditEnums.Destroy));
                     }
                     break;
                 case 10:
                     if (ReEmbScene) {
-                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("TerrainFix", "Rock", EditEnums.Destroy)));
-                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("TerrainFix (1)", "Rock", EditEnums.Destroy)));
-                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube (1)", "Concrete", EditEnums.Destroy)));
-                        FindObject(new Edits("Embrion_B(Clone)", "Untagged", EditEnums.IfFound, I: new Found("Cube (2)", "Concrete", EditEnums.Destroy)));
+                        FindObject(new Edits("TerrainFix", "Rock", EditEnums.Destroy));
+                        FindObject(new Edits("TerrainFix (1)", "Rock", EditEnums.Destroy));
+                        FindObject(new Edits("Unbalanced", "Puddle", EditEnums.Destroy));
+                        FindObject(new Edits("UnbalancedC", "Snow", EditEnums.Destroy));
+                    } else {
+                        FindObject(new Edits("Rebalanced", "Puddle", EditEnums.Destroy));
+                        FindObject(new Edits("RebalancedC", "Snow", EditEnums.Destroy));
                     }
                     break;
                 default:
@@ -154,9 +199,53 @@ namespace MapImprovements.Patches
             bool vanilla = ConfigControl.Instance.cfgMoons[moon].Vanilla;
             int fireOffset = 0;
 
+            //Override even chance
+            if (ConfigControl.Instance.cfgMoons[moon].OverrideOdds) {
+                int odds = 7 + (ConfigControl.Instance.cfgMoons[moon].Vanilla ? 1 : 0);
+                switch (randomSeed % odds) {
+                    case 0:
+                        //A
+                        ApplyObject(moon, 0, container.transform);
+                        return;
+                    case 1:
+                        //AB
+                        fireOffset += ApplyObject(moon, 0, container.transform, fireOffset);
+                        ApplyObject(moon, 1, container.transform, fireOffset);
+                        return;
+                    case 2:
+                        //AC
+                        fireOffset += ApplyObject(moon, 0, container.transform, fireOffset);
+                        ApplyObject(moon, 2, container.transform, fireOffset);
+                        return;
+                    case 3:
+                        //ABC
+                        fireOffset += ApplyObject(moon, 0, container.transform, fireOffset);
+                        fireOffset += ApplyObject(moon, 1, container.transform, fireOffset);
+                        ApplyObject(moon, 2, container.transform, fireOffset);
+                        return;
+                    case 4:
+                        //B
+                        ApplyObject(moon, 1, container.transform);
+                        return;
+                    case 5:
+                        //BC
+                        fireOffset += ApplyObject(moon, 1, container.transform, fireOffset);
+                        ApplyObject(moon, 2, container.transform, fireOffset);
+                        return;
+                    case 6:
+                        //C
+                        ApplyObject(moon, 2, container.transform);
+                        return;
+                    default:
+                        //Vanilla
+                        return;
+
+                }
+            }
+
             //Always spawning objects
             for (int i = 0; i < ConfigControl.Instance.cfgMoons[moon].cfgObjects.Length; i++) {
-                if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) fireOffset += ApplyObject(moon, i, container.transform);
+                if (ConfigControl.Instance.cfgMoons[moon].cfgObjects[i].Settings.Equals(ConfigControl.Setting.Always)) fireOffset += ApplyObject(moon, i, container.transform, fireOffset);
             }
 
             //Calculate the base spawn, exiting if the vanilla is selected / oob / disabled from spawning (but that should never happen)
@@ -417,7 +506,7 @@ namespace MapImprovements.Patches
                     }
                     if (find.TryGetComponent<MeshRenderer>(out MeshRenderer render)) {
                         MapImprovementModBase.mls.LogInfo($"Added water material to {find.name}");
-                        if (WaterMat != null) render.material = WaterMat;
+                        if (MapImprovementModBase.Instance.WaterMat != null) render.material = MapImprovementModBase.Instance.WaterMat;
                         else render.enabled = false;
                     }
                     return 0;
@@ -427,11 +516,13 @@ namespace MapImprovements.Patches
                         MapImprovementModBase.mls.LogInfo($"Adding reverb {MapImprovementModBase.ReverbNames[dex]} to {find.name}");
                         change.reverbPreset = MapImprovementModBase.Instance.reverbAssets[dex];
                         if (change.audioChanges == null) change.audioChanges = new switchToAudio[0];
+                        change.insideLighting = global;
                     } else {
                         MapImprovementModBase.mls.LogInfo($"Adding reverb {MapImprovementModBase.ReverbNames[dex]} & script to {find.name}");
                         AudioReverbTrigger add = find.AddComponent<AudioReverbTrigger>();
                         add.reverbPreset = MapImprovementModBase.Instance.reverbAssets[dex];
                         add.audioChanges = new switchToAudio[0];
+                        add.insideLighting = global;
                     }
                     return 0;
                 case MapImprovementModBase.EditEnums.HasTrees:
@@ -446,7 +537,7 @@ namespace MapImprovements.Patches
                     return 0;
                 case MapImprovementModBase.EditEnums.IfFound:
                     //Never needed unless someone is dumb
-                    MapImprovementModBase.mls.LogWarning($"What are you trying to do here?");
+                    MapImprovementModBase.mls.LogError($"What are you trying to do here?");
                     return 0;
                 case MapImprovementModBase.EditEnums.Hazards:
                     MapImprovementModBase.mls.LogInfo($"Adding hazards to {find.name}");
@@ -457,8 +548,9 @@ namespace MapImprovements.Patches
                     return 0;
                 case MapImprovementModBase.EditEnums.KillTrigger:
                     MapImprovementModBase.mls.LogInfo($"Adding kill trigger to {find.name}");
-                    KillLocalPlayer killer = find.AddComponent<KillLocalPlayer>();
-                    InteractTrigger interact = find.AddComponent<InteractTrigger>();
+                    find.AddComponent<CustomKillTrigger>();
+                    //KillLocalPlayer killer = find.AddComponent<KillLocalPlayer>();
+                    //InteractTrigger interact = find.AddComponent<InteractTrigger>();
                     //interact.onInteract.AddListener(killer.KillPlayer);
                     return 0;
                 default:

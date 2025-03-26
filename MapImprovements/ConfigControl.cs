@@ -31,6 +31,7 @@ namespace MapImprovements
         {
             public ConfigEntry<bool> cfgEnabled;
             public ConfigEntry<bool> cfgIncludeDefault;
+            public ConfigEntry<bool> cfgOverrideRarities;
             public ObjectConfig[] cfgObjects;
             internal bool Enabled
             {
@@ -41,6 +42,11 @@ namespace MapImprovements
             {
                 get => cfgIncludeDefault.Value;
                 set => cfgIncludeDefault.Value = value;
+            }
+            internal bool OverrideOdds
+            {
+                get => cfgOverrideRarities.Value;
+                set => cfgOverrideRarities.Value = value;
             }
         }
         public struct ObjectConfig
@@ -66,8 +72,9 @@ namespace MapImprovements
                 if (MapImprovementModBase.Instance.Moons[i].Adjustments == null || MapImprovementModBase.Instance.Moons[i].Adjustments.Count < 1) continue;
                 string name = MapImprovementModBase.Instance.Moons[i].Planet;
                 name = name[0].ToString().ToUpper() + name.Substring(1);
-                cfgMoons[i].cfgEnabled = cfg.Bind(name, "Enabled", true, "Enable improvements spawning on " + name);
-                cfgMoons[i].cfgIncludeDefault = cfg.Bind(name, "Vanilla", true, "Adds chance for the original " + name + " to spawn.");
+                cfgMoons[i].cfgEnabled = cfg.Bind(name, "Enabled", true, $"Enable improvements spawning on {name}");
+                cfgMoons[i].cfgIncludeDefault = cfg.Bind(name, "Vanilla", true, $"Adds chance for the original {name} to spawn.");
+                cfgMoons[i].cfgOverrideRarities = cfg.Bind(name, "Flat Odds", false, "Overrides the individual settings and gives even odds to every possible combination. Disable Vanilla if you do not want to include it.");
                 cfgMoons[i].cfgObjects = new ObjectConfig[MapImprovementModBase.Instance.Moons[i].Adjustments.Count];
                 for (int j = 0; j < MapImprovementModBase.Instance.Moons[i].Adjustments.Count; j++) {
                     if (MapImprovementModBase.Instance.Moons[i].Adjustments[j].Object == null) continue;

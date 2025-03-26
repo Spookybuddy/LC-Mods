@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigControl.cs" />
+    <Compile Include="CustomKillTrigger.cs" />
     <Compile Include="Patches\RoundManagerPatch.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

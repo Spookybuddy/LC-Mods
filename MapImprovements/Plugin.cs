@@ -15,7 +15,7 @@ namespace MapImprovements
         //Mod declaration
         public const string modGUID = "MapImprovements";
         private const string modName = "MapImprovements";
-        private const string modVersion = "0.9.6";
+        private const string modVersion = "0.9.7";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -30,6 +30,7 @@ namespace MapImprovements
         internal static TextAsset[] currentInstructions;
         internal ReverbPreset[] reverbAssets;
         internal static readonly string[] ReverbNames = new string[] { "Alley", "BigCanyon", "Cave", "ConcreteTunnel", "Elevator", "LargeRoom", "NoReverb", "Outside1", "OutsideForest", "OutsideSnow", "SmallRoom" };
+        internal Material WaterMat;
         internal bool Rebalanced = false;
         internal bool Chameleon = false;
         internal bool TonightWeDine = false;
@@ -168,9 +169,11 @@ namespace MapImprovements
                         currentInstructions = currentAsset.LoadAllAssets<TextAsset>();
                         string[] map = foundOutsideAssetFiles[i].ToLower().Split(new[] { "\\" }, System.StringSplitOptions.RemoveEmptyEntries);
                         map[0] = map[map.Length - 1].ToLower().Split(new[] { "improvements.bundle" }, System.StringSplitOptions.RemoveEmptyEntries)[0];
-                        //Reverb assets only from base bundle
+                        //Base Bundle holds reverb presets & water material
                         if (map[0].Equals("map")) {
                             reverbAssets = currentAsset.LoadAllAssets<ReverbPreset>();
+                            WaterMat = currentAsset.LoadAllAssets<Material>()[0];
+                            mls.LogInfo($"Water material: {WaterMat.name}");
                             //Rebalanced compat
                             files = Directory.GetFiles(location, "rebalancedmoons.dll", SearchOption.AllDirectories);
                             if (files.Length > 0 && files != null) {
@@ -194,6 +197,15 @@ namespace MapImprovements
                             if (files.Length > 0 && files != null) {
                                 mls.LogWarning($"Chameleon found, adding door checks!");
                                 Chameleon = true;
+                            }
+                            //TonightWeDine compatability
+                            files = Directory.GetFiles(location, "TonightWeDine.dll", SearchOption.AllDirectories);
+                            if (files.Length > 0 && files != null) {
+                                files = Directory.GetFiles(location, "tonightwedine", SearchOption.AllDirectories);
+                                if (files.Length > 0 && files != null) {
+                                    mls.LogWarning($"Tonight we Dine! Modifying Dine!");
+                                    TonightWeDine = true;
+                                }
                             }
                         }
                         if (currentAssetObjects != null && currentAssetObjects.Length > 0) {
@@ -258,7 +270,7 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Clone, new Vector3(-185.25f, 19.765f, -9.45f), new Vector3(270, 0, 0))); // (15)
                                             adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Clone, new Vector3(-151.5f, -2.16f, 16.74f), new Vector3(270, 0, 180))); // (16)
                                             adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Clone, new Vector3(-146.9f, -2.16f, 58.41f), new Vector3(270, 0, 180))); // (17)
-                                            adjustments.Add(new Edits("OutOfBoundsTriggerFactory", "Untagged", EditEnums.Clone, new Vector3(-179, -8, 23.5f), S: new Vector3(10, 1, 12)));
+                                            //adjustments.Add(new Edits("OutOfBoundsTriggerFactory", "Untagged", EditEnums.Clone, new Vector3(-179, -8, 23.5f), S: new Vector3(10, 1, 12)));
                                             adjustments.Add(new Edits("Environment/ScanNodes/ScanNode", "Untagged", EditEnums.Move, new Vector3(-185, 0, 37)));
                                             adjustments.Add(new Edits("EntranceTeleportA", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-188.3f, -1, 41.3f), S: new Vector3(0.5f, 3.5f, 6)));
                                             //These doors don't need a door frame, so destroy the doorframe after cloning
@@ -276,33 +288,34 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("SteelDoor(Clone) 19/DoorFrame", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("SteelDoor", "Untagged", EditEnums.Destroy));
                                             //Reverbs, lights, decoration, navmesh, nodes, spawn blockers, catwalks
-                                            adjustments.Add(new Edits("TriggerLarge", "Grass", EditEnums.Reverb, F: 5));
-                                            adjustments.Add(new Edits("TriggerHall", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (1)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (2)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (3)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (4)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (5)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (6)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (7)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (8)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (9)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (10)", "Grass", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("TriggerHall (11)", "Grass", EditEnums.Reverb, F: 6));
+                                            adjustments.Add(new Edits("TriggerLarge", "Grass", EditEnums.Reverb, F: 5, G: true));
+                                            adjustments.Add(new Edits("TriggerHall", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (1)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (2)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (3)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (4)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (5)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (6)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (7)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (8)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (9)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (10)", "Grass", EditEnums.Reverb, F: 6, G: true));
+                                            adjustments.Add(new Edits("TriggerHall (11)", "Grass", EditEnums.Reverb, F: 6, G: true));
                                             adjustments.Add(new Edits("TriggerAlley", "Grass", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("TriggerAlley (1)", "Grass", EditEnums.Reverb, F: 0));
-                                            adjustments.Add(new Edits("TriggerRoom", "Grass", EditEnums.Reverb, F: 10));
-                                            adjustments.Add(new Edits("TriggerRoom (1)", "Grass", EditEnums.Reverb, F: 10));
-                                            adjustments.Add(new Edits("TriggerRoom (2)", "Grass", EditEnums.Reverb, F: 10));
-                                            adjustments.Add(new Edits("TriggerRoom (3)", "Grass", EditEnums.Reverb, F: 10));
-                                            adjustments.Add(new Edits("TriggerRoom (4)", "Grass", EditEnums.Reverb, F: 10));
-                                            adjustments.Add(new Edits("TriggerRoom (5)", "Grass", EditEnums.Reverb, F: 10));
+                                            adjustments.Add(new Edits("TriggerRoom", "Grass", EditEnums.Reverb, F: 10, G: true));
+                                            adjustments.Add(new Edits("TriggerRoom (1)", "Grass", EditEnums.Reverb, F: 10, G: true));
+                                            adjustments.Add(new Edits("TriggerRoom (2)", "Grass", EditEnums.Reverb, F: 10, G: true));
+                                            adjustments.Add(new Edits("TriggerRoom (3)", "Grass", EditEnums.Reverb, F: 10, G: true));
+                                            adjustments.Add(new Edits("TriggerRoom (4)", "Grass", EditEnums.Reverb, F: 10, G: true));
+                                            adjustments.Add(new Edits("TriggerRoom (5)", "Grass", EditEnums.Reverb, F: 10, G: true));
                                             adjustments.Add(new Edits("OverlapColliders (1)", "Concrete", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OverlapColliders (2)", "Concrete", EditEnums.Destroy));
                                             adjustments.Add(new Edits("HazardSpawn", "Bush", EditEnums.Hazards, F: 8));
                                             adjustments.Add(new Edits("HazardSpawn (1)", "Bush", EditEnums.Hazards, F: 7));
                                             adjustments.Add(new Edits("HazardSpawn (2)", "Bush", EditEnums.Hazards, F: 5));
                                             adjustments.Add(new Edits("HazardSpawn (3)", "Bush", EditEnums.Hazards, F: 25));
+                                            adjustments.Add(new Edits("Kill Plane", "Snow", EditEnums.KillTrigger));
                                             //Rewrite whole terrain
                                             //adjustments.Add(new Edits("PitA", "Untagged", EditEnums.KillTrigger));
                                             //adjustments.Add(new Edits("terrainMap", "Gravel", EditEnums.Destroy));
@@ -382,10 +395,10 @@ namespace MapImprovements
                                             configDescrip = "Adds in a new facility building right behind the ship, with a Fire Exit that has been flooded.";
                                         } else {
                                             adjustments.Add(new Edits("ChainlinkFence (4)", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("EnterAlley", "Untagged", EditEnums.Reverb, F: 0));
-                                            adjustments.Add(new Edits("ExitAlley", "Untagged", EditEnums.Reverb, F: 9));
-                                            adjustments.Add(new Edits("EnterGrove", "Untagged", EditEnums.Reverb, F: 6));
-                                            adjustments.Add(new Edits("ExitTop", "Untagged", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("EnterAlley", "Snow", EditEnums.Reverb, F: 0));
+                                            adjustments.Add(new Edits("ExitAlley", "Snow", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("EnterGrove", "Snow", EditEnums.Reverb, F: 6));
+                                            adjustments.Add(new Edits("ExitTop", "Snow", EditEnums.Reverb, F: 9));
                                             adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(12.75f, 8, 211.25f), new Vector3(0, 180, 0), F : 2));
                                             configDefault = ConfigControl.Setting.Always;
                                             configDescrip = "Expands the Facility building, adding in a new area with Fire Exit through the alleyway.";
@@ -424,16 +437,6 @@ namespace MapImprovements
                                         break;
                                     case "adamance":
                                         if (parse[1].Equals("b")) {
-                                            //Rebalanced trees
-                                            if (Rebalanced) {
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (4)", "Wood", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (5)", "Wood", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (7)", "Wood", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (8)", "Wood", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (9)", "Wood", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (11)", "Wood", EditEnums.Destroy));
-                                                adjustments.Add(new Edits("treeLeaflessBrown.001 Variant (12)", "Wood", EditEnums.Destroy));
-                                            }
                                             adjustments.Add(new Edits("Cube.002", "Concrete", EditEnums.Destroy));
                                             adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.AllTransforms, new Vector3(-75.9f, -2.4f, -112.35f), new Vector3(0, 223, 0)));
                                             configDefault = ConfigControl.Setting.RandomAll;
@@ -489,21 +492,12 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("Environment/Map/Collider", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("Environment/Map/Collider (1)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("CliffJump (2)", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("InteriorReverb", "Untagged", EditEnums.Reverb, F: 5));
-                                            adjustments.Add(new Edits("ExitReverb", "Untagged", EditEnums.Reverb, F: 0));
-                                            adjustments.Add(new Edits("ExitReverb (1)", "Untagged", EditEnums.Reverb, F: 0));
+                                            adjustments.Add(new Edits("InteriorReverb", "Grass", EditEnums.Reverb, F: 5));
+                                            adjustments.Add(new Edits("ExitReverb", "Grass", EditEnums.Reverb, F: 0));
+                                            adjustments.Add(new Edits("ExitReverb (1)", "Grass", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                             configDefault = ConfigControl.Setting.Always;
                                             configDescrip = "Adds in fences around the edges, with holes to allow for escaping Giants. Adjusts the Main entrance area to prevent Giants loitering.";
-                                            //TonightWeDine compatability
-                                            files = Directory.GetFiles(location, "TonightWeDine.dll", SearchOption.AllDirectories);
-                                            if (files.Length > 0 && files != null) {
-                                                files = Directory.GetFiles(location, "tonightwedine", SearchOption.AllDirectories);
-                                                if (files.Length > 0 && files != null) {
-                                                    mls.LogWarning($"Tonight we Dine! Modifying Dine!");
-                                                    TonightWeDine = true;
-                                                }
-                                            }
                                         }
                                         index = 7;
                                         break;
@@ -519,7 +513,7 @@ namespace MapImprovements
                                         break;
                                     case "artifice":
                                         if (parse[1].Equals("b")) {
-                                            adjustments.Add(new Edits("ItemShipAnimContainer", "Untagged", EditEnums.AllTransforms, new Vector3(72, 2.75f, -62.5f), new Vector3(-90, 45, -50)));
+                                            adjustments.Add(new Edits("ItemShipAnimContainer", "Untagged", EditEnums.AllTransforms, new Vector3(50.5f, -2.8f, -42), new Vector3(-95, -55, -50)));
                                             adjustments.Add(new Edits("treeLeafless", "Wood", EditEnums.Destroy));
                                             adjustments.Add(new Edits("treeLeafless (4)", "Wood", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (97)", "OutsideAINode", EditEnums.Destroy));
@@ -534,44 +528,55 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("treeLeafless.002_LOD0 (3)", "Wood", EditEnums.Destroy));
                                             adjustments.Add(new Edits("SteelDoorMapModel (4)", "Untagged", EditEnums.Clone, new Vector3(12.25f, 4.5f, -11.21f), new Vector3(180, -92, -180), new Vector3(1, 1.05f, 1)));
                                             adjustments.Add(new Edits("FogExclusionZone (2)", "Untagged", EditEnums.Clone, new Vector3(30.5f, 14, -0.75f)));
-                                            adjustments.Add(new Edits("BuildingAmbience", "Untagged", EditEnums.Clone, new Vector3(46.25f, 7, -73), new Vector3(180, 0, 180)));
-                                            adjustments.Add(new Edits("BuildingAmbience (7)", "Untagged", EditEnums.Clone, new Vector3(10.75f, 3, -84)));
-                                            adjustments.Add(new Edits("InsideAmbience (1)", "Untagged", EditEnums.Clone, new Vector3(47.5f, 7, -73)));
+                                            //adjustments.Add(new Edits("BuildingAmbience", "Untagged", EditEnums.Clone, new Vector3(46.25f, 7, -73), new Vector3(180, 0, 180)));
+                                            //adjustments.Add(new Edits("BuildingAmbience (7)", "Untagged", EditEnums.Clone, new Vector3(10.75f, 3, -84)));
+                                            //adjustments.Add(new Edits("InsideAmbience (1)", "Untagged", EditEnums.Clone, new Vector3(47.5f, 7, -73)));
+                                            adjustments.Add(new Edits("OutsideA", "Gravel", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("OutsideB", "Gravel", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("InsideA", "Gravel", EditEnums.Reverb, F: 5));
+                                            adjustments.Add(new Edits("InsideB", "Gravel", EditEnums.Reverb, F: 5));
                                             adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                             adjustments.Add(new Edits("LargePipeCorner (3)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("LargePipeCorner (4)", "Untagged", EditEnums.Destroy));
                                             configDefault = ConfigControl.Setting.RandomC;
-                                            configDescrip = "Adds in a warehouse and platform for the ship to land in.";
+                                            configDescrip = "Adds in a warehouse for the ship to land in.";
                                         } else if (parse[1].Equals("c")) {
-                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(14, 157.4f, -274.9f), new Vector3(180, 26, 180), F: 2));
+                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(120, 1.75f, -19.86f), new Vector3(180, -90, 180), F: 2, G: true));
                                             adjustments.Add(new Edits("OuterFence/ChainlinkFence (57)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("Colliders/ChainlinkFence (45)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("Colliders/Cube", "Untagged", EditEnums.Move, new Vector3(126, 1.4f, -69.5f)));
-                                            adjustments.Add(new Edits("BuildingAmbience (3)", "Untagged", EditEnums.Clone, new Vector3(140, 7, -79), new Vector3(180, 0, 180), new Vector3(0.5f, 10, 20)));
-                                            adjustments.Add(new Edits("OutsideAmbience (1)", "Untagged", EditEnums.Clone, new Vector3(138, 7, -79)));
-                                            adjustments.Add(new Edits("OceanFixed", "Puddle", EditEnums.Water));
-                                            adjustments.Add(new Edits("Ocean (1)", "Puddle", EditEnums.Water));
-                                            adjustments.Add(new Edits("Ocean (2)", "Puddle", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger", "Untagged", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger (1)", "Untagged", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger (2)", "Untagged", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger (3)", "Untagged", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger (4)", "Untagged", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger (5)", "Untagged", EditEnums.Water));
-                                            adjustments.Add(new Edits("WaterTrigger (6)", "Untagged", EditEnums.Water));
+                                            //adjustments.Add(new Edits("BuildingAmbience (3)", "Untagged", EditEnums.Clone, new Vector3(140, 7, -79), new Vector3(180, 0, 180), new Vector3(0.5f, 10, 20)));
+                                            //adjustments.Add(new Edits("OutsideAmbience (1)", "Untagged", EditEnums.Clone, new Vector3(138, 7, -79)));
+                                            adjustments.Add(new Edits("Exit", "Gravel", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("Enter", "Gravel", EditEnums.Reverb, F: 5));
+                                            //adjustments.Add(new Edits("OceanFixed", "Puddle", EditEnums.Water));
+                                            //adjustments.Add(new Edits("Ocean (1)", "Puddle", EditEnums.Water));
+                                            //adjustments.Add(new Edits("Ocean (2)", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger (1)", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger (2)", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger (3)", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger (4)", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger (5)", "Puddle", EditEnums.Water));
+                                            adjustments.Add(new Edits("WaterTrigger (6)", "Puddle", EditEnums.Water));
                                             adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
                                             adjustments.Add(new Edits("LargePipeCorner (3)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("LargePipeCorner (4)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("PipeFix", "Snow", EditEnums.Destroy));
                                             adjustments.Add(new Edits("PipeFix (1)", "Snow", EditEnums.Destroy));
                                             configDefault = ConfigControl.Setting.RandomB;
-                                            configDescrip = "Adds in large bodies of water and dams.";
+                                            configDescrip = "Adds in large bodies of water and dams, with a new Fire exit behind the ship.";
                                         } else {
                                             adjustments.Add(new Edits("ItemShipAnimContainer", "Untagged", EditEnums.AllTransforms, new Vector3(82, -4.66f, -98.5f), new Vector3(-86, 28, -43)));
-                                            adjustments.Add(new Edits("OutsideAmbience (3)", "Untagged", EditEnums.Clone, new Vector3(55, 2, -187)));
-                                            adjustments.Add(new Edits("OutsideAmbience (4)", "Untagged", EditEnums.Clone, new Vector3(14, -1, -198)));
-                                            adjustments.Add(new Edits("BuildingAmbience (7)", "Untagged", EditEnums.Clone, new Vector3(15.25f, -1, -198)));
-                                            adjustments.Add(new Edits("BuildingAmbience (6)", "Untagged", EditEnums.Clone, new Vector3(53.5f, 3, -188)));
+                                            //adjustments.Add(new Edits("OutsideAmbience (3)", "Untagged", EditEnums.Clone, new Vector3(55, 2, -187)));
+                                            //adjustments.Add(new Edits("OutsideAmbience (4)", "Untagged", EditEnums.Clone, new Vector3(14, -1, -198)));
+                                            //adjustments.Add(new Edits("BuildingAmbience (7)", "Untagged", EditEnums.Clone, new Vector3(15.25f, -1, -198)));
+                                            //adjustments.Add(new Edits("BuildingAmbience (6)", "Untagged", EditEnums.Clone, new Vector3(53.5f, 3, -188)));
+                                            adjustments.Add(new Edits("OutsideAmbienceA", "Gravel", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("OutsideAmbienceB", "Gravel", EditEnums.Reverb, F: 9));
+                                            adjustments.Add(new Edits("4thBuildingAmbience", "Gravel", EditEnums.Reverb, F: 5));
+                                            adjustments.Add(new Edits("4thBuildingAmbience (1)", "Gravel", EditEnums.Reverb, F: 5));
+                                            adjustments.Add(new Edits("CrateAmbience", "Gravel", EditEnums.Reverb, F: 3));
                                             adjustments.Add(new Edits("GarageDoorContainer (2)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("GreyRockGrouping2 (6)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("Colliders/Cube (4)", "Untagged", EditEnums.Destroy));
@@ -590,10 +595,11 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.FireExit, new Vector3(205.75f, -8.7f, 116.3f), new Vector3(0, 125, 0), F: 2));
                                             adjustments.Add(new Edits("GroundFog", "Untagged", EditEnums.Move, new Vector3(75, 5.2f, 66)));
                                             adjustments.Add(new Edits("GroundFog", "Untagged", EditEnums.Clone, new Vector3(85, 5.2f, -144)));
+                                            adjustments.Add(new Edits("BigMachine", "Untagged", EditEnums.Move, new Vector3(208, -20, 116)));
                                             //Improvement cross compat
                                             adjustments.Add(new Edits("Cave", "Wood", EditEnums.IfFound, I: new Found("WithoutA", "Concrete", EditEnums.Destroy)));
                                             adjustments.Add(new Edits("Cave", "Wood", EditEnums.IfFound, I: new Found("WithA", "Untagged", EditEnums.Enable)));
-                                            adjustments.Add(new Edits("Cavern A", "Wood", EditEnums.Reverb, F: 2));
+                                            adjustments.Add(new Edits("Cavern A", "Wood", EditEnums.Reverb, F: 2, G: true));
                                             adjustments.Add(new Edits("Exit A", "Wood", EditEnums.Reverb, F: 0));
                                             //All
                                             adjustments.Add(new Edits("AllImprovements", "Rock", EditEnums.Destroy));
@@ -601,17 +607,17 @@ namespace MapImprovements
                                             configDefault = ConfigControl.Setting.RandomAny;
                                             configDescrip = "Adds a new Fire exit to the left of Main entrance.";
                                         } else if (parse[1].Equals("c")) {
-                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.AllTransforms, new Vector3(270.75f, -5.37f, -90.35f), new Vector3(0, 2, 0)));
+                                            adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.Clone, new Vector3(270.75f, -5.37f, -90.35f), new Vector3(0, 2, 0)));
                                             adjustments.Add(new Edits("Environment/BoundsWalls/Cube", "Untagged", EditEnums.AllTransforms, new Vector3(700, 16.59f, 406), new Vector3(0, -15, 0)));
                                             adjustments.Add(new Edits("Environment/BoundsWalls/Cube (1)", "Untagged", EditEnums.AllTransforms, new Vector3(365, 19.5f, -4)));
-                                            adjustments.Add(new Edits("FireCave", "Rock", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("Cube.002", "Concrete", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("FireCave", "Rock", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("Cube.002", "Concrete", EditEnums.Destroy));
                                             //Improvement cross compat
                                             adjustments.Add(new Edits("Cave", "Wood", EditEnums.IfFound, I: new Found("NoA", "Concrete", EditEnums.Destroy)));
                                             adjustments.Add(new Edits("Cave", "Wood", EditEnums.IfFound, I: new Found("NeedsA", "Untagged", EditEnums.Enable)));
-                                            adjustments.Add(new Edits("Passage", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Passage (1)", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Passage (2)", "Wood", EditEnums.Reverb, F: 2));
+                                            adjustments.Add(new Edits("Passage", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Passage (1)", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Passage (2)", "Wood", EditEnums.Reverb, F: 2, G: true));
                                             adjustments.Add(new Edits("Outsider", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Outsider (1)", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Outsider (2)", "Wood", EditEnums.Reverb, F: 0));
@@ -620,45 +626,51 @@ namespace MapImprovements
                                             adjustments.Add(new Edits("AllImprovements", "Rock", EditEnums.Destroy));
                                             adjustments.Add(new Edits("AllImprovements (1)", "Rock", EditEnums.Destroy));
                                             configDefault = ConfigControl.Setting.RandomAny;
-                                            configDescrip = "Expands the play area, adds more AI nodes, and adjusts the terrain slightly. Moves the Fire exit behind the Main facility.";
+                                            configDescrip = "Expands the play area, adds more AI nodes, and adds a Fire Exit behind the facility.";
                                         } else {
                                             adjustments.Add(new Edits("CementFacility1", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("LEDHangingLight", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("LEDHangingLight (1)", "Untagged", EditEnums.Destroy));
                                             adjustments.Add(new Edits("Environment/NavObstacles/NavObs", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("RockJump", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("RockJump (5)", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("RockJump (6)", "Untagged", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("RockJump (7)", "Untagged", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("ScanNode", "Untagged", EditEnums.Move, new Vector3(-198, 8.6f, -21), G: true));
+                                            //adjustments.Add(new Edits("RockJump", "Untagged", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("RockJump (5)", "Untagged", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("RockJump (6)", "Untagged", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("RockJump (7)", "Untagged", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("GreyRockGrouping4", "Untagged", EditEnums.Destroy));
+                                            //adjustments.Add(new Edits("OutsideNode (24)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (43)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (44)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (47)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (48)", "OutsideAINode", EditEnums.Destroy));
                                             adjustments.Add(new Edits("OutsideNode (49)", "OutsideAINode", EditEnums.Destroy));
-                                            adjustments.Add(new Edits("Environment/Plane", "Untagged", EditEnums.Move, new Vector3(213.6f, 8.9f, -13.85f), G: true));
+                                            adjustments.Add(new Edits("Environment/Plane", "Untagged", EditEnums.Move, new Vector3(235.55f, 1.4f, -7.1f)));
                                             adjustments.Add(new Edits("DoorFrame (1)", "Untagged", EditEnums.Move, new Vector3(235.53f, -1.96f, -7.17f)));
-                                            adjustments.Add(new Edits("SteelDoorFake", "Untagged", EditEnums.Move, new Vector3(236.53f, 1.437f, -6.02f)));
-                                            adjustments.Add(new Edits("SteelDoorFake (1)", "Untagged", EditEnums.Move, new Vector3(234.64f, 1.437f, -8.31f)));
+                                            adjustments.Add(new Edits("SteelDoorFake", "Untagged", EditEnums.Move, new Vector3(236.48f, 1.437f, -5.98f)));
+                                            adjustments.Add(new Edits("SteelDoorFake (1)", "Untagged", EditEnums.Move, new Vector3(234.57f, 1.437f, -8.25f)));
                                             adjustments.Add(new Edits("EntranceTeleportA", "InteractTrigger", EditEnums.Move, new Vector3(235.4f, 0.7f, -7.07f)));
                                             adjustments.Add(new Edits("EntranceTeleportB", "InteractTrigger", EditEnums.Move, new Vector3(197.6f, 4, -134.3f)));
-                                            adjustments.Add(new Edits("Cave", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Cave (1)", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Cave (2)", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Cave (3)", "Wood", EditEnums.Reverb, F: 2));
+                                            adjustments.Add(new Edits("Cave", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Cave (1)", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Cave (2)", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Cave (3)", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Cave (4)", "Wood", EditEnums.Reverb, F: 2, G: true));
                                             adjustments.Add(new Edits("Exit", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Exit (1)", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Exit (2)", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Exit (3)", "Wood", EditEnums.Reverb, F: 0));
+                                            adjustments.Add(new Edits("Exit (4)", "Wood", EditEnums.Reverb, F: 0));
+                                            adjustments.Add(new Edits("Exit (5)", "Wood", EditEnums.Reverb, F: 0));
                                             //Modify other improvements
                                             adjustments.Add(new Edits("WithoutA", "Concrete", EditEnums.Destroy));
                                             adjustments.Add(new Edits("NoA", "Concrete", EditEnums.Destroy));
                                             adjustments.Add(new Edits("FireExitDoorB", "Carpet", EditEnums.IfFound, I: new Found("WithA", "Untagged", EditEnums.Enable)));
                                             adjustments.Add(new Edits("FireExitDoorC", "Carpet", EditEnums.IfFound, I: new Found("NeedsA", "Untagged", EditEnums.Enable)));
-                                            adjustments.Add(new Edits("Cavern A", "Wood", EditEnums.Reverb, F: 2));
+                                            adjustments.Add(new Edits("Cavern A", "Wood", EditEnums.Reverb, F: 2, G: true));
                                             adjustments.Add(new Edits("Exit A", "Wood", EditEnums.Reverb, F: 0));
-                                            adjustments.Add(new Edits("Passage", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Passage (1)", "Wood", EditEnums.Reverb, F: 2));
-                                            adjustments.Add(new Edits("Passage (2)", "Wood", EditEnums.Reverb, F: 2));
+                                            adjustments.Add(new Edits("Passage", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Passage (1)", "Wood", EditEnums.Reverb, F: 2, G: true));
+                                            adjustments.Add(new Edits("Passage (2)", "Wood", EditEnums.Reverb, F: 2, G: true));
                                             adjustments.Add(new Edits("Outsider", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Outsider (1)", "Wood", EditEnums.Reverb, F: 0));
                                             adjustments.Add(new Edits("Outsider (2)", "Wood", EditEnums.Reverb, F: 0));
@@ -844,6 +856,7 @@ namespace MapImprovements
                                                                         case "transform":
                                                                         case "transforms":
                                                                         case "alltransforms":
+                                                                        case "all transforms":
                                                                             edit = EditEnums.AllTransforms;
                                                                             break;
                                                                         case "destroy":
@@ -851,6 +864,7 @@ namespace MapImprovements
                                                                             break;
                                                                         case "fire":
                                                                         case "fireexit":
+                                                                        case "fire exit":
                                                                             edit = EditEnums.FireExit;
                                                                             break;
                                                                         case "clone":
@@ -867,10 +881,12 @@ namespace MapImprovements
                                                                             break;
                                                                         case "reverb":
                                                                         case "reverbtrigger":
+                                                                        case "reverb trigger":
                                                                             edit = EditEnums.Reverb;
                                                                             break;
                                                                         case "trees":
                                                                         case "hastrees":
+                                                                        case "has trees":
                                                                             edit = EditEnums.HasTrees;
                                                                             break;
                                                                         case "iffound":
@@ -879,6 +895,11 @@ namespace MapImprovements
                                                                             break;
                                                                         case "hazards":
                                                                             edit = EditEnums.Hazards;
+                                                                            break;
+                                                                        case "kill":
+                                                                        case "killtrigger":
+                                                                        case "kill trigger":
+                                                                            edit = EditEnums.KillTrigger;
                                                                             break;
                                                                         default:
                                                                             mls.LogError("Unable to parse Edit Enum. Please make sure things are formatted properly.");
