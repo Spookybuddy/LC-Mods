@@ -15,7 +15,7 @@ namespace MapImprovements
         //Mod declaration
         public const string modGUID = "MapImprovements";
         private const string modName = "MapImprovements";
-        private const string modVersion = "0.9.7";
+        private const string modVersion = "0.9.8";
 
         //Mod initializers
         private readonly Harmony harmony = new Harmony(modGUID);
@@ -34,6 +34,7 @@ namespace MapImprovements
         internal bool Rebalanced = false;
         internal bool Chameleon = false;
         internal bool TonightWeDine = false;
+        internal bool ArtificeBlizzard = false;
 
         //Internal moon vars
         internal List<Collection> Moons = new List<Collection>() {
@@ -139,7 +140,8 @@ namespace MapImprovements
             HasTrees,
             IfFound,
             Hazards,
-            KillTrigger
+            KillTrigger,
+            Adopt
         }
 
         void Awake()
@@ -205,6 +207,15 @@ namespace MapImprovements
                                 if (files.Length > 0 && files != null) {
                                     mls.LogWarning($"Tonight we Dine! Modifying Dine!");
                                     TonightWeDine = true;
+                                }
+                            }
+                            //ArtificeBlizzard compatibilty
+                            files = Directory.GetFiles(location, "ArtificeBlizzard.dll", SearchOption.AllDirectories);
+                            if (files.Length > 0 && files != null) {
+                                files = Directory.GetFiles(location, "artificeblizzard", SearchOption.AllDirectories);
+                                if (files.Length > 0 && files != null) {
+                                    mls.LogWarning($"Artifice Blizzard! Modifying Artifice!");
+                                    ArtificeBlizzard = true;
                                 }
                             }
                         }
@@ -427,11 +438,36 @@ namespace MapImprovements
                                         break;
                                     case "march":
                                         if (parse[1].Equals("b")) {
-
+                                            adjustments.Add(new Edits("QuicksandContainer (4)", "Untagged", EditEnums.Clone, new Vector3(82, -22, -25)));
+                                            adjustments.Add(new Edits("QuicksandContainer (4)", "Untagged", EditEnums.Clone, new Vector3(79.25f, -22, -33)));
+                                            adjustments.Add(new Edits("tree.001_LOD0 (59)", "Wood", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("tree.001_LOD0 (64)", "Wood", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("Cube.002", "Concrete", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("Inside", "Snow", EditEnums.Reverb, F: 10));
+                                            adjustments.Add(new Edits("Inside (1)", "Snow", EditEnums.Reverb, F: 10));
+                                            adjustments.Add(new Edits("Inside (2)", "Snow", EditEnums.Reverb, F: 10));
+                                            adjustments.Add(new Edits("Outside", "Snow", EditEnums.Reverb, F: 8));
+                                            adjustments.Add(new Edits("Outside (1)", "Snow", EditEnums.Reverb, F: 8));
+                                            adjustments.Add(new Edits("Outside (2)", "Snow", EditEnums.Reverb, F: 8));
+                                            adjustments.Add(new Edits("FireB", "Puddle", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
+                                            configDefault = ConfigControl.Setting.RandomAny;
+                                            configDescrip = "Adds more to the environment & cabins to hide from Giants.";
                                         } else if (parse[1].Equals("c")) {
-
+                                            adjustments.Add(new Edits("EntranceTeleportD", "InteractTrigger", EditEnums.FireExit, new Vector3(-82, -6.5f, 61), new Vector3(-180, 10, 180), F: 4));
+                                            adjustments.Add(new Edits("QuicksandContainer (2)", "Untagged", EditEnums.Clone, new Vector3(-105.8f, -27, 128), new Vector3(11, 22, -11)));
+                                            adjustments.Add(new Edits("TreeBreakTrigger", "Wood", EditEnums.HasTrees));
+                                            configDefault = ConfigControl.Setting.RandomAll;
+                                            configDescrip = "Adds to March's hilly terrain with cliffs, as well as a Fire Exit across the lake in the back right of the map.";
                                         } else {
-
+                                            adjustments.Add(new Edits("Cube.002", "Concrete", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("Cube.002 (1)", "Concrete", EditEnums.Destroy));
+                                            adjustments.Add(new Edits("LadderTrigger", "InteractTrigger", EditEnums.Clone, new Vector3(12.35f, 7.2f, -145.45f), new Vector3(0, 180, 0), new Vector3(0.87f, 79, 0.34f), true, I: new Found("LadderNest", "Gravel", EditEnums.Adopt)));
+                                            adjustments.Add(new Edits("Environment/MapPropsContainer/March_A(Clone)/FireB/LadderNest/LadderTrigger(Clone)/TopPos", "Untagged", EditEnums.Move, new Vector3(0, -0.04f, -1.8f)));
+                                            //adjustments.Add(new Edits("LadderTrigger", "InteractTrigger", EditEnums.Clone, new Vector3(12.35f, 1.5f, -145.45f), new Vector3(0, 180, 0), new Vector3(0.87f, 60, 0.34f), true, I: new Found("FireB", "Puddle", EditEnums.Adopt)));
+                                            adjustments.Add(new Edits("BasementCabin", "Puddle", EditEnums.Destroy));
+                                            configDefault = ConfigControl.Setting.RandomAll;
+                                            configDescrip = "Expands the multiple facilities to make them more obvious.";
                                         }
                                         index = 4;
                                         break;
@@ -925,6 +961,7 @@ namespace MapImprovements
                                                                             break;
                                                                         default:
                                                                             if (int.TryParse(map[k], out int z)) fir = z;
+                                                                            if (StringToBoolean(map[k])) glo = true;
                                                                             break;
                                                                     }
                                                                     break;
