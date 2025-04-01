@@ -14,6 +14,7 @@ namespace MapImprovements.Patches
         private static bool ReOffScene = false;
         private static bool ReAdaScene = false;
         private static bool ReDinScene = false;
+        private static bool ReTitScene = false;
         private static bool ReEmbScene = false;
         private static bool ReArtScene = false;
 
@@ -47,6 +48,21 @@ namespace MapImprovements.Patches
             }
         }
 
+        [HarmonyPatch("SpawnOutsideHazards")]
+        [HarmonyPostfix]
+        static void FixArtificeBlizzard(RoundManager __instance)
+        {
+            if (GetMoonIndex(__instance.currentLevel.name.ToLower().Trim()) == 9) {
+                if (MapImprovementModBase.Instance.ArtificeBlizzard) {
+                    MapImprovementModBase.mls.LogWarning($"BlizzardArtifice made me do it");
+                    FindObject(new Edits("ArtificeTerrainCutDown", "Snow", EditEnums.IfFound, I: new Found("VanillaHills", "Rock", EditEnums.Destroy)));
+                    FindObject(new Edits("ArtificeTerrainCutDown", "Snow", EditEnums.IfFound, I: new Found("DistanceHillsVanilla", "Gravel", EditEnums.Destroy)));
+                }
+                FindObject(new Edits("ArtificeTerrainCutDown", "Grass", EditEnums.IfFound, I: new Found("BlizzardHills", "Rock", EditEnums.Destroy)));
+                FindObject(new Edits("ArtificeTerrainCutDown", "Grass", EditEnums.IfFound, I: new Found("DistanceHillsBlizzard", "Gravel", EditEnums.Destroy)));
+            }
+        }
+
         [HarmonyPatch("SetChallengeFileRandomModifiers")]
         [HarmonyPrefix]
         static void AddImprovements(RoundManager __instance)
@@ -65,7 +81,7 @@ namespace MapImprovements.Patches
 
             //Rebalanced scene check
             if (MapImprovementModBase.Instance.Rebalanced) {
-                foreach (string sceneName in new[] { "ReExperimentationScene", "ReVowScene", "ReOffenseScene", "ReAdamanceScene", "ReDineScene", "ReEmbrionScene", "ReArtificeScene" }) {
+                foreach (string sceneName in new[] { "ReExperimentationScene", "ReVowScene", "ReOffenseScene", "ReAdamanceScene", "ReDineScene", "ReTitanScene", "ReEmbrionScene", "ReArtificeScene" }) {
                     if (SceneManager.GetSceneByName(sceneName).IsValid()) {
                         switch (sceneName) {
                             case "ReExperimentationScene":
@@ -87,6 +103,10 @@ namespace MapImprovements.Patches
                             case "ReDineScene":
                                 MapImprovementModBase.mls.LogWarning($"Rebalanced Dine detected! Cement!");
                                 ReDinScene = true;
+                                break;
+                            case "ReTitanScene":
+                                MapImprovementModBase.mls.LogWarning($"Rebalanced Titan detected! Uh oh!");
+                                ReTitScene = true;
                                 break;
                             case "ReEmbrionScene":
                                 MapImprovementModBase.mls.LogWarning($"Rebalanced Embrion detected! Terrain!");
@@ -159,6 +179,11 @@ namespace MapImprovements.Patches
                         FindObject(new Edits("InteriorReverb", "Grass", EditEnums.IfFound, I: new Found("Cube.002", "Concrete", EditEnums.Destroy)));
                     }
                     break;
+                case 8:
+                    if (ReTitScene) {
+                        MapImprovementModBase.mls.LogInfo($"Just prepping for next update.");
+                    }
+                    break;
                 case 9:
                     if (ReArtScene) {
                         FindObject(new Edits("Extention", "Concrete", EditEnums.Destroy));
@@ -202,6 +227,8 @@ namespace MapImprovements.Patches
             //Override even chance
             if (ConfigControl.Instance.cfgMoons[moon].OverrideOdds) {
                 int odds = 7 + (ConfigControl.Instance.cfgMoons[moon].Vanilla ? 1 : 0);
+                int even = randomSeed % 2;
+                int offset = (randomSeed + 1) % 2;
                 switch (randomSeed % odds) {
                     case 0:
                         //A
@@ -209,19 +236,19 @@ namespace MapImprovements.Patches
                         return;
                     case 1:
                         //AB
-                        fireOffset += ApplyObject(moon, 0, container.transform, fireOffset);
-                        ApplyObject(moon, 1, container.transform, fireOffset);
+                        fireOffset += ApplyObject(moon, even, container.transform, fireOffset);
+                        ApplyObject(moon, offset, container.transform, fireOffset);
                         return;
                     case 2:
                         //AC
-                        fireOffset += ApplyObject(moon, 0, container.transform, fireOffset);
-                        ApplyObject(moon, 2, container.transform, fireOffset);
+                        fireOffset += ApplyObject(moon, even * 2, container.transform, fireOffset);
+                        ApplyObject(moon, offset * 2, container.transform, fireOffset);
                         return;
                     case 3:
                         //ABC
-                        fireOffset += ApplyObject(moon, 0, container.transform, fireOffset);
-                        fireOffset += ApplyObject(moon, 1, container.transform, fireOffset);
-                        ApplyObject(moon, 2, container.transform, fireOffset);
+                        fireOffset += ApplyObject(moon, randomSeed % 3, container.transform, fireOffset);
+                        fireOffset += ApplyObject(moon, (randomSeed + 1) % 3, container.transform, fireOffset);
+                        ApplyObject(moon, (randomSeed + 2) % 3, container.transform, fireOffset);
                         return;
                     case 4:
                         //B
@@ -229,8 +256,8 @@ namespace MapImprovements.Patches
                         return;
                     case 5:
                         //BC
-                        fireOffset += ApplyObject(moon, 1, container.transform, fireOffset);
-                        ApplyObject(moon, 2, container.transform, fireOffset);
+                        fireOffset += ApplyObject(moon, even + 1, container.transform, fireOffset);
+                        ApplyObject(moon, offset + 1, container.transform, fireOffset);
                         return;
                     case 6:
                         //C
@@ -372,7 +399,7 @@ namespace MapImprovements.Patches
         {
             if (MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Object != null) {
                 GameObject.Instantiate(MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Object, parent, true);
-                MapImprovementModBase.mls.LogInfo($"Spawned in " + MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Object.name);
+                MapImprovementModBase.mls.LogInfo($"Spawned in {MapImprovementModBase.Instance.Moons[moon].Adjustments[index].Object.name}");
             } else MapImprovementModBase.mls.LogWarning($"Moon's object was null!");
         }
 
@@ -472,7 +499,18 @@ namespace MapImprovements.Patches
                     }
                     else return 0;
                 case MapImprovementModBase.EditEnums.Clone:
-                    GameObject clone = GameObject.Instantiate(find, find.transform.parent);
+                    Transform parent = find.transform.parent;
+                    if (edit.If.Do.Equals(MapImprovementModBase.EditEnums.Adopt)) {
+                        GameObject[] adoption = GameObject.FindGameObjectsWithTag(edit.If.Tag);
+                        for (int i = 0; i < adoption.Length; i++) {
+                            if (adoption[i].name.Equals(edit.If.Name)) {
+                                parent = adoption[i].transform;
+                                MapImprovementModBase.mls.LogError($"{find.name} adopted by {edit.If.Name}");
+                                break;
+                            }
+                        }
+                    }
+                    GameObject clone = GameObject.Instantiate(find, parent);
                     if (edit.FireExitIndex != 0) clone.name = $"{clone.name} {edit.FireExitIndex}";
                     MapImprovementModBase.mls.LogInfo($"Cloned {find.name} as {clone.name} {(global ? $"globally" : $"locally")}");
                     if (global) {
@@ -549,9 +587,18 @@ namespace MapImprovements.Patches
                 case MapImprovementModBase.EditEnums.KillTrigger:
                     MapImprovementModBase.mls.LogInfo($"Adding kill trigger to {find.name}");
                     find.AddComponent<CustomKillTrigger>();
-                    //KillLocalPlayer killer = find.AddComponent<KillLocalPlayer>();
-                    //InteractTrigger interact = find.AddComponent<InteractTrigger>();
-                    //interact.onInteract.AddListener(killer.KillPlayer);
+                    return 0;
+                case MapImprovementModBase.EditEnums.Adopt:
+                    MapImprovementModBase.mls.LogInfo($"{edit.If.Name} adopted {find.name}");
+                    if (edit.If.Do.Equals(MapImprovementModBase.EditEnums.Adopt)) {
+                        GameObject[] adoption = GameObject.FindGameObjectsWithTag(edit.If.Tag);
+                        for (int i = 0; i < adoption.Length; i++) {
+                            if (adoption[i].name.Equals(edit.If.Name)) {
+                                find.transform.SetParent(adoption[i].transform);
+                                break;
+                            }
+                        }
+                    }
                     return 0;
                 default:
                     MapImprovementModBase.mls.LogError($"Error regarding Edit Enum: Enum set to {edit.Do}");
